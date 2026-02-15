@@ -294,7 +294,7 @@ shutil.copy2(SHADOW, SHADOW + '.bak-apikey-' + str(int(time.time())))
 d = json.load(open(SHADOW))
 d.setdefault('models', {}).setdefault('providers', {})['google-gemini-cli'] = {
     "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
-    "apiKey": "YOUR_API_KEY_HERE",
+    "apiKey": "{{ .gemini_api_key }}",   // chezmoi: ~/.config/chezmoi/chezmoi.toml → [data].gemini_api_key
     "api": "openai-completions",
     "models": [
         {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "contextWindow": 1048576},
