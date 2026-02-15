@@ -16,7 +16,8 @@ description: Use when managing, monitoring, controlling, or troubleshooting Open
 - **Auth profiles**: `/opt/openclaw/config/agents/main/agent/auth-profiles.json`
 - **Cron jobs**: `/opt/openclaw/config/cron/jobs.json`
 - **Usage stats**: `/opt/openclaw/config/usage-stats.json`
-- **Active session store**: `/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json`
+- **Active session store**: `/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json` (metadata: model, provider)
+- **Session conversation logs**: `/opt/openclaw/config/.openclaw/agents/main/sessions/<uuid>.jsonl` (history — does NOT control model selection)
 - **Config audit log**: `/opt/openclaw/config/.openclaw/logs/config-audit.jsonl`
 - **Telegram bot token**: `8187629510:AAH6WtuEkC485yFEIIuwn-6RA9ANZ3L4yCY`
 - **Gateway port**: `18789`
@@ -478,6 +479,73 @@ openclaw gateway &
 
 ---
 
+### FAILURE: Session model locked to old provider (bot returns errors / empty responses)
+**Symptom:** Bot receives Telegram messages and runs, but every response is empty `[]` or returns an error message ("400 status code", "connection error", "quota exceeded"). Logs show the old model provider (`google-antigravity/gemini-3-flash`) even after changing the config default.
+
+**Cause — Two-layer session state:**
+- `sessions.json` stores session METADATA including `modelProvider` + `model` per session
+- `.jsonl` files store conversation HISTORY (do NOT control model selection)
+- When a session is restored after gateway restart, it reads model from `sessions.json`, not the conversation history
+- The main persistent agent session (`agent:main:main`) runs continuously and is NOT replaced by restarting the gateway — it resumes with its stored model
+- Empty content `[]` in assistant messages = API call failed silently. OpenClaw does not crash; it returns empty responses. The bot then forwards the error text ("400 status code") as the chat reply.
+- Changing `agents.defaults.model.primary` in the config affects NEW sessions only — NOT the already-running main session
+
+**Diagnose:**
+```bash
+# Check what model the main session is using
+python3 -c "
+import json
+s = json.load(open('/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json'))
+for k, v in s.items():
+    if isinstance(v, dict) and v.get('modelProvider'):
+        print(k[:8], v.get('modelProvider'), v.get('model'))
+" | head -20
+
+# Confirm silent failures: empty content in recent session log
+tail -c 5000 /opt/openclaw/config/.openclaw/agents/main/sessions/<uuid>.jsonl | \
+  python3 -c "import sys,json; [print(json.loads(l).get('message',{}).get('content','')) for l in sys.stdin if l.strip()]" | tail -10
+# If all outputs are [] → API calls are silently failing
+```
+
+**Fix — Patch ALL sessions in sessions.json:**
+```bash
+python3 << 'EOF'
+import json, shutil, time
+
+SESSIONS = '/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json'
+shutil.copy2(SESSIONS, SESSIONS + '.bak-' + str(int(time.time())))
+
+with open(SESSIONS) as f:
+    data = json.load(f)
+
+count = 0
+for k, v in data.items():
+    if isinstance(v, dict):
+        # Patch ANY session using the old provider OR with null/empty model
+        if v.get('modelProvider') in ('google-antigravity', None) or \
+           v.get('model') in ('gemini-3-flash', None, ''):
+            v['modelProvider'] = 'google-gemini-cli'
+            v['model'] = 'gemini-2.5-flash'
+            count += 1
+
+with open(SESSIONS, 'w') as f:
+    json.dump(data, f, indent=2)
+print(f'Patched {count} sessions → google-gemini-cli/gemini-2.5-flash')
+EOF
+
+# Then restart gateway to load new session state
+pkill -f 'openclaw.*gateway' 2>/dev/null; sleep 3
+openclaw gateway &
+sleep 6 && openclaw status
+```
+
+**Critical gotchas:**
+- Patch must cover sessions with `modelProvider=null` / `model=''` too — these default to the previously active provider, not the config default
+- After patching, the gateway MUST be restarted — the running session is cached in memory
+- If the main `.jsonl` file is very large (>1MB), the session is long-running and may re-read old model from conversation context on next compaction. Verify with a test message after restart.
+
+---
+
 ### FAILURE: Git `cannot lock ref` / `Permission denied` on push
 **Symptom:** `git push` (or `git fetch`) fails with:
 ```
@@ -526,6 +594,10 @@ find ~/PROJECTz ~/NSTRUCTiONz ~/distrobox-configs ~/litellm-stack \
 | `config set` can't write provider objects | Setting `models.providers.<name>.*` fails validation unless the full object (baseUrl + api + models[]) exists. Write provider blocks directly to the shadow config JSON via Python script. |
 | Telegram polling can die silently | A "Connection error" in logs kills the getUpdates loop. Bot can still send but won't receive. Fix: kill gateway PID and restart. |
 | Git `.lock` / `Permission denied` in container | `.git/refs` and `.git/logs` dirs get owned by `root` when git runs under a different UID mapping. `git push` fails with `cannot lock ref ... Permission denied`. Fix: `sudo chown -R yish:yish <repo>/.git` |
+| Session model ≠ config default | Changing `agents.defaults.model.primary` only affects NEW sessions. The running main session reads `modelProvider`+`model` from `sessions.json`, not the config default. Must patch sessions.json and restart gateway. |
+| Empty `[]` assistant content = silent API failure | OpenClaw does not crash on API errors — it logs empty `[]` content and the bot forwards the error text as a chat reply ("400 status code", etc.). Always check session `.jsonl` for `[]` pattern to confirm API-level failure. |
+| `sessions.json` vs `.jsonl` — two separate things | `sessions.json` = metadata store (controls model selection). `.jsonl` files = conversation history (read-only reference). Patching `.jsonl` does nothing to change the model used. |
+| Main session survives gateway restart | The `agent:main:main` session is long-running. It resumes with its cached `modelProvider`/`model` from `sessions.json` on every gateway restart — changing config defaults alone is not enough. |
 
 ---
 
