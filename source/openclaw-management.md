@@ -346,6 +346,52 @@ print(f'Merged {len(old)} old + {len(new)} new = {len(merged)} total')
 
 ---
 
+### FAILURE: Telegram polling dead (bot sends but doesn't receive)
+**Symptom:** Bot can send messages but never responds to inbound Telegram messages. `openclaw logs` shows last `messageChannel=telegram` run was minutes/hours ago. No new telegram runs after a "Connection error" log entry.
+
+**Cause:** Telegram's getUpdates long-polling loop crashed (network error, timeout) and the gateway did not restart it.
+
+**Verify:**
+```bash
+openclaw logs 2>&1 | grep -i "telegram\|Connection error" | tail -20
+# Look for: last messageChannel=telegram run followed by "Connection error"
+# and no new telegram runs after that
+```
+
+**Fix:**
+```bash
+# 1. Get gateway PID and kill it
+ps aux | grep openclaw-gateway | grep -v grep
+kill <PID>
+sleep 4
+# 2. Ensure gateway.mode is set (required for restart)
+openclaw config set gateway.mode local
+# 3. Restart gateway
+openclaw gateway &
+# 4. Verify Telegram polling resumed
+openclaw health  # Should show: Telegram: ok (@ypenclawbot)
+openclaw logs 2>&1 | grep "starting provider" | tail -3
+```
+
+**Note:** The Telegram update offset is stored in `/opt/openclaw/config/telegram/update-offset-default.json`. Pending messages (up to 24h old) will be replayed on next `getUpdates` poll after gateway restarts.
+
+---
+
+### FAILURE: `openclaw gateway --force` blocked (gateway.mode unset)
+**Symptom:** `openclaw gateway --force` outputs `Gateway start blocked: set gateway.mode=local (current: unset) or pass --allow-unconfigured.`
+
+**Cause:** `gateway.mode` was never written to the shadow config. The gateway can start initially without it, but `--force` restart requires it.
+
+**Fix:**
+```bash
+openclaw config set gateway.mode local
+kill $(ps aux | grep openclaw-gateway | grep -v grep | awk '{print $2}')
+sleep 3
+openclaw gateway &
+```
+
+---
+
 ### FAILURE: State directory split (multiple state dirs warning)
 **Symptom:** `openclaw doctor` reports `Multiple state directories detected: ${HOME}/.openclaw` and `Active: $OPENCLAW_HOME/.openclaw`
 
@@ -365,6 +411,8 @@ print(f'Merged {len(old)} old + {len(new)} new = {len(merged)} total')
 | Gateway restart drops active session | `openclaw gateway --force` kills the current session context. Warn user before running. |
 | Two `openclaw.json` files | Main config at `/opt/openclaw/config/openclaw.json` (full, providers). Shadow config at `.openclaw/openclaw.json` (active, minimal). CLI reads shadow. |
 | Credentials symlink required | `doctor --fix` creates `.openclaw/` without `credentials/`. Must symlink manually if CRITICAL warning appears. |
+| `gateway.mode` must be set | `openclaw gateway --force` fails with "blocked" unless `gateway.mode=local` is in shadow config. Run `openclaw config set gateway.mode local` first. |
+| Telegram polling can die silently | A "Connection error" in logs kills the getUpdates loop. Bot can still send but won't receive. Fix: kill gateway PID and restart. |
 
 ---
 
