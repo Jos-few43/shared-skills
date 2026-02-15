@@ -263,6 +263,64 @@ python3 /opt/openclaw/config/workspace/scripts/token_alert_daemon.py  # Manual a
 openclaw sessions --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['count'],'sessions')"
 ```
 
+### Rotate to Direct API Key (OAuth exhausted / expired)
+When all OAuth tokens are expired or exhausted, bypass OAuth by injecting an API key directly into the shadow config. Works for any provider that supports `openai-completions` API format.
+
+**Step 1: Check token state**
+```bash
+python3 -c "
+import json, datetime
+with open('/opt/openclaw/config/agents/main/agent/auth-profiles.json') as f:
+    d = json.load(f)
+now = datetime.datetime.now().timestamp() * 1000
+for k, v in d.get('profiles', {}).items():
+    exp = v.get('expires', 0)
+    diff = (exp - now) / 1000
+    errs = d.get('usageStats', {}).get(k, {}).get('errorCount', 0)
+    print(k, 'VALID' if diff > 0 else f'EXPIRED {abs(diff)/3600:.1f}h ago', f'errors={errs}')
+"
+```
+
+**Step 2: Inject API key into shadow config**
+
+⚠️ `openclaw config set` cannot set nested provider objects piecemeal — write directly:
+```bash
+python3 << 'EOF'
+import json, os, shutil, time
+
+SHADOW = '/opt/openclaw/config/.openclaw/openclaw.json'
+shutil.copy2(SHADOW, SHADOW + '.bak-apikey-' + str(int(time.time())))
+
+d = json.load(open(SHADOW))
+d.setdefault('models', {}).setdefault('providers', {})['google-gemini-cli'] = {
+    "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "apiKey": "<YOUR_GEMINI_API_KEY>",
+    "api": "openai-completions",
+    "models": [
+        {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "contextWindow": 1048576},
+        {"id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro", "contextWindow": 1048576},
+        {"id": "gemini-3-flash", "name": "Gemini 3 Flash", "contextWindow": 1048576},
+        {"id": "gemini-3-pro-preview", "name": "Gemini 3 Pro Preview", "contextWindow": 1048576}
+    ]
+}
+d['agents']['defaults']['model']['primary'] = 'google-gemini-cli/gemini-2.5-flash'
+
+tmp = SHADOW + '.tmp'
+json.dump(d, open(tmp, 'w'), indent=2)
+os.replace(tmp, SHADOW)
+print("Done. Default:", d['agents']['defaults']['model']['primary'])
+EOF
+```
+
+**Step 3: Restart gateway**
+```bash
+kill $(ps aux | grep openclaw-gateway | grep -v grep | awk '{print $2}')
+sleep 3 && openclaw gateway &
+sleep 8 && openclaw config get agents.defaults.model.primary
+```
+
+**Note:** `openclaw config set` validation requires the full provider object (baseUrl + api + models array) — partial key writes fail. Direct JSON edit is the correct approach for provider-level changes. Always backup the shadow config first (script above does this automatically).
+
 ---
 
 ## Known Failure Patterns & Fixes
@@ -412,6 +470,7 @@ openclaw gateway &
 | Two `openclaw.json` files | Main config at `/opt/openclaw/config/openclaw.json` (full, providers). Shadow config at `.openclaw/openclaw.json` (active, minimal). CLI reads shadow. |
 | Credentials symlink required | `doctor --fix` creates `.openclaw/` without `credentials/`. Must symlink manually if CRITICAL warning appears. |
 | `gateway.mode` must be set | `openclaw gateway --force` fails with "blocked" unless `gateway.mode=local` is in shadow config. Run `openclaw config set gateway.mode local` first. |
+| `config set` can't write provider objects | Setting `models.providers.<name>.*` fails validation unless the full object (baseUrl + api + models[]) exists. Write provider blocks directly to the shadow config JSON via Python script. |
 | Telegram polling can die silently | A "Connection error" in logs kills the getUpdates loop. Bot can still send but won't receive. Fix: kill gateway PID and restart. |
 
 ---
