@@ -478,6 +478,31 @@ openclaw gateway &
 
 ---
 
+### FAILURE: Git `cannot lock ref` / `Permission denied` on push
+**Symptom:** `git push` (or `git fetch`) fails with:
+```
+error: update_ref failed for ref 'refs/remotes/origin/main': cannot lock ref
+Unable to create '.git/refs/remotes/origin/main.lock': Permission denied
+```
+Or: `unable to append to '.git/logs/refs/remotes/origin/main': Permission denied`
+
+**Cause:** `.git/refs/` and `.git/logs/` directories are owned by `root` due to git running under a different UID mapping inside the distrobox container (e.g. after a `sudo git` or a mount remapping).
+
+**Fix (single repo):**
+```bash
+sudo chown -R yish:yish <repo>/.git
+```
+
+**Fix (all repos at once):**
+```bash
+find ~/PROJECTz ~/NSTRUCTiONz ~/distrobox-configs ~/litellm-stack \
+     ~/shared-skills ~/.local/share/chezmoi \
+     -path "*/.git*" ! -user yish 2>/dev/null \
+  | xargs -r sudo chown yish:yish
+```
+
+---
+
 ### FAILURE: State directory split (multiple state dirs warning)
 **Symptom:** `openclaw doctor` reports `Multiple state directories detected: ${HOME}/.openclaw` and `Active: $OPENCLAW_HOME/.openclaw`
 
@@ -500,6 +525,7 @@ openclaw gateway &
 | `gateway.mode` must be set | `openclaw gateway --force` fails with "blocked" unless `gateway.mode=local` is in shadow config. Present in main config but omitted by `doctor --fix`. Always run the full restore script after `doctor --fix`. |
 | `config set` can't write provider objects | Setting `models.providers.<name>.*` fails validation unless the full object (baseUrl + api + models[]) exists. Write provider blocks directly to the shadow config JSON via Python script. |
 | Telegram polling can die silently | A "Connection error" in logs kills the getUpdates loop. Bot can still send but won't receive. Fix: kill gateway PID and restart. |
+| Git `.lock` / `Permission denied` in container | `.git/refs` and `.git/logs` dirs get owned by `root` when git runs under a different UID mapping. `git push` fails with `cannot lock ref ... Permission denied`. Fix: `sudo chown -R yish:yish <repo>/.git` |
 
 ---
 
