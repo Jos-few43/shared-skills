@@ -342,9 +342,37 @@ openclaw config set channels.telegram.enabled true
 openclaw config set channels.telegram.dmPolicy pairing
 openclaw config set channels.telegram.groupPolicy allowlist
 openclaw config set channels.telegram.streamMode block
-openclaw gateway --force &
+openclaw config set gateway.mode local   # ← REQUIRED or --force restart will fail
+kill $(ps aux | grep openclaw-gateway | grep -v grep | awk '{print $2}') 2>/dev/null
+sleep 3 && openclaw gateway &
 # Wait 8s then verify:
 openclaw plugins list | grep -E "loaded|telegram|gemini-cli|qwen-portal"
+```
+
+**Why `gateway.mode` is required:** Main config has `gateway.mode=local` but `doctor --fix` creates a minimal shadow config that omits it. Without it, `openclaw gateway --force` exits with `Gateway start blocked: set gateway.mode=local`. The value is permanent in the main config — it just needs to be written to the shadow config once after each `doctor --fix`.
+
+**Full shadow config restore script (run after any `doctor --fix`):**
+```bash
+openclaw plugins enable google-antigravity-auth
+openclaw plugins enable google-gemini-cli-auth
+openclaw plugins enable qwen-portal-auth
+openclaw plugins enable telegram
+openclaw plugins enable device-pair
+openclaw plugins enable memory-core
+openclaw plugins enable phone-control
+openclaw plugins enable talk-voice
+openclaw config set channels.telegram.botToken "8187629510:AAH6WtuEkC485yFEIIuwn-6RA9ANZ3L4yCY"
+openclaw config set channels.telegram.enabled true
+openclaw config set channels.telegram.dmPolicy pairing
+openclaw config set channels.telegram.groupPolicy allowlist
+openclaw config set channels.telegram.streamMode block
+openclaw config set gateway.mode local
+# Verify credentials symlink exists
+[ -L /opt/openclaw/config/.openclaw/credentials ] || \
+  ln -s /opt/openclaw/config/credentials /opt/openclaw/config/.openclaw/credentials
+kill $(ps aux | grep openclaw-gateway | grep -v grep | awk '{print $2}') 2>/dev/null
+sleep 3 && openclaw gateway &
+sleep 8 && openclaw plugins list | grep -E "loaded|disabled"
 ```
 
 ---
@@ -469,7 +497,7 @@ openclaw gateway &
 | Gateway restart drops active session | `openclaw gateway --force` kills the current session context. Warn user before running. |
 | Two `openclaw.json` files | Main config at `/opt/openclaw/config/openclaw.json` (full, providers). Shadow config at `.openclaw/openclaw.json` (active, minimal). CLI reads shadow. |
 | Credentials symlink required | `doctor --fix` creates `.openclaw/` without `credentials/`. Must symlink manually if CRITICAL warning appears. |
-| `gateway.mode` must be set | `openclaw gateway --force` fails with "blocked" unless `gateway.mode=local` is in shadow config. Run `openclaw config set gateway.mode local` first. |
+| `gateway.mode` must be set | `openclaw gateway --force` fails with "blocked" unless `gateway.mode=local` is in shadow config. Present in main config but omitted by `doctor --fix`. Always run the full restore script after `doctor --fix`. |
 | `config set` can't write provider objects | Setting `models.providers.<name>.*` fails validation unless the full object (baseUrl + api + models[]) exists. Write provider blocks directly to the shadow config JSON via Python script. |
 | Telegram polling can die silently | A "Connection error" in logs kills the getUpdates loop. Bot can still send but won't receive. Fix: kill gateway PID and restart. |
 
