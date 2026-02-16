@@ -653,7 +653,13 @@ openclaw gateway &
 sleep 8 && openclaw status --deep | grep -A15 'Sessions'
 ```
 
-**Prevention:** After any container rebuild or OPENCLAW_HOME change, run the diagnose step above to confirm both stores have consistent model values before restarting the gateway.
+**Prevention:** After any container rebuild, OPENCLAW_HOME change, `openclaw update`, or manual gateway restart, re-run the patch script — the gateway can write a fresh session entry inheriting the stale model from a provider default or existing session template in the legacy store, even if the main session was previously patched. One stale entry per restart is the typical pattern; the patch is idempotent and safe to repeat.
+
+**Reoccurrence after gateway restart / `openclaw update`:** Even after a successful patch, a single new session may appear with `gemini-3-pro-preview` after the next restart. The gateway creates new sessions (e.g. web chat, cron runs) that can inherit the old model. Log signature to watch for:
+```
+embedded run start: ... provider=google-gemini-cli model=gemini-3-pro-preview → isError=true
+```
+If seen, re-run the patch above (it auto-selects the active store by mtime), then restart the gateway again. Typically only one iteration is needed.
 
 ---
 
@@ -676,6 +682,7 @@ sleep 8 && openclaw status --deep | grep -A15 'Sessions'
 | `sessions.json` vs `.jsonl` — two separate things | `sessions.json` = metadata store (controls model selection). `.jsonl` files = conversation history (read-only reference). Patching `.jsonl` does nothing to change the model used. |
 | Main session survives gateway restart | The `agent:main:main` session is long-running. It resumes with its cached `modelProvider`/`model` from `sessions.json` on every gateway restart — changing config defaults alone is not enough. |
 | Legacy store can be the active store | `~/.openclaw/agents/main/sessions/sessions.json` is labelled "legacy" but the gateway may write to it actively. Always compare `ls -la` timestamps of both stores to find out which one is newer — that is the one the gateway is using. The newer store is what must be patched when sessions are model-locked. |
+| Model lock reoccurs after each gateway restart | After patching sessions and restarting the gateway (including after `openclaw update`), the gateway may write ONE new session entry with the stale model (`gemini-3-pro-preview`). Re-run the mtime-based patch and restart once more. Typically only one re-patch is needed. Log signature: `embedded run start: ... model=gemini-3-pro-preview → isError=true`. |
 | `status --deep` sessions table reads the active-write store | `openclaw status --deep` shows the model from the sessions.json the gateway last wrote to. If the legacy store is newer, `status` shows legacy store models. This is the correct source for diagnosing model lock issues. |
 
 ---
