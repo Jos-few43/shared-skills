@@ -578,6 +578,83 @@ find ~/PROJECTz ~/NSTRUCTiONz ~/distrobox-configs ~/litellm-stack \
 
 **Note:** This is now expected. Active state is `.openclaw/` subdir. `~/.openclaw/` is the legacy dir — **do not delete** (session history reference).
 
+**Critical:** Even though `~/.openclaw/` is labelled "legacy", the gateway can and does write to it — particularly `~/.openclaw/agents/main/sessions/sessions.json`. Check the modification timestamp of both stores before assuming which one the gateway is using (see FAILURE below).
+
+---
+
+### FAILURE: Legacy store shadow-active (two-store model lock)
+**Symptom:** Bot responds with errors or empty content. `openclaw status --deep` shows the main session using a model that seems correct (e.g. `google-gemini-cli/gemini-3-pro-preview`), but that model is NOT in the API key provider's `models[]` list, and all OAuth tokens are expired.
+
+**Root cause — Two-store write race:**
+- The gateway writes session state to whichever store is "active" at runtime
+- After container rebuilds / OPENCLAW_HOME changes, the gateway may resume writing to `~/.openclaw/agents/main/sessions/sessions.json` (legacy) instead of `/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json` (shadow)
+- `openclaw status` merges both stores for display; whichever has the higher-priority key wins — which is often the legacy store since it was written last
+- A session locked to an old model (`gemini-3-pro-preview`) that is NOT in the API key provider's models list causes silent API failures (`[]` content)
+- The shadow config (`/opt/openclaw/config/.openclaw/openclaw.json`) may already have the API key provider and correct default model — but the RUNNING session ignores config defaults and reads its model from `sessions.json` directly
+
+**Diagnose — which store is active?**
+```bash
+# Compare modification times: whichever is newer is what the gateway is using
+ls -la /opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json
+ls -la ${HOME}/.openclaw/agents/main/sessions/sessions.json
+
+# Check what model the main session has in EACH store
+python3 -c "
+import json
+for path in [
+    '/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json',
+    '${HOME}/.openclaw/agents/main/sessions/sessions.json',
+]:
+    try:
+        d = json.load(open(path))
+        m = d.get('agent:main:main', {})
+        print(path.split('/')[-3], '->', m.get('modelProvider'), m.get('model'))
+    except Exception as e:
+        print(path, 'ERROR:', e)
+"
+```
+
+**Fix — patch the active (most recently modified) store:**
+```bash
+python3 << 'EOF'
+import json, shutil, time
+
+# Use whichever was modified more recently
+import os
+SHADOW  = '/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json'
+LEGACY  = '${HOME}/.openclaw/agents/main/sessions/sessions.json'
+SESSIONS = LEGACY if os.path.getmtime(LEGACY) > os.path.getmtime(SHADOW) else SHADOW
+print(f'Patching: {SESSIONS}')
+shutil.copy2(SESSIONS, SESSIONS + '.bak-' + str(int(time.time())))
+
+with open(SESSIONS) as f:
+    data = json.load(f)
+
+count = 0
+for k, v in data.items():
+    if isinstance(v, dict):
+        if v.get('modelProvider') in ('google-antigravity', None) or \
+           v.get('model') in ('gemini-3-pro-preview', None, ''):
+            v['modelProvider'] = 'google-gemini-cli'
+            v['model'] = 'gemini-2.5-flash'
+            count += 1
+
+with open(SESSIONS, 'w') as f:
+    json.dump(data, f, indent=2)
+print(f'Patched {count} sessions -> google-gemini-cli/gemini-2.5-flash')
+m = data.get('agent:main:main', {})
+print(f"Main session now: provider={m.get('modelProvider')} model={m.get('model')}")
+EOF
+
+# Then restart gateway to load new session state
+pkill -f 'openclaw.*gateway' 2>/dev/null; sleep 4
+openclaw config set gateway.mode local
+openclaw gateway &
+sleep 8 && openclaw status --deep | grep -A15 'Sessions'
+```
+
+**Prevention:** After any container rebuild or OPENCLAW_HOME change, run the diagnose step above to confirm both stores have consistent model values before restarting the gateway.
+
 ---
 
 ## Gotchas
@@ -598,6 +675,8 @@ find ~/PROJECTz ~/NSTRUCTiONz ~/distrobox-configs ~/litellm-stack \
 | Empty `[]` assistant content = silent API failure | OpenClaw does not crash on API errors — it logs empty `[]` content and the bot forwards the error text as a chat reply ("400 status code", etc.). Always check session `.jsonl` for `[]` pattern to confirm API-level failure. |
 | `sessions.json` vs `.jsonl` — two separate things | `sessions.json` = metadata store (controls model selection). `.jsonl` files = conversation history (read-only reference). Patching `.jsonl` does nothing to change the model used. |
 | Main session survives gateway restart | The `agent:main:main` session is long-running. It resumes with its cached `modelProvider`/`model` from `sessions.json` on every gateway restart — changing config defaults alone is not enough. |
+| Legacy store can be the active store | `~/.openclaw/agents/main/sessions/sessions.json` is labelled "legacy" but the gateway may write to it actively. Always compare `ls -la` timestamps of both stores to find out which one is newer — that is the one the gateway is using. The newer store is what must be patched when sessions are model-locked. |
+| `status --deep` sessions table reads the active-write store | `openclaw status --deep` shows the model from the sessions.json the gateway last wrote to. If the legacy store is newer, `status` shows legacy store models. This is the correct source for diagnosing model lock issues. |
 
 ---
 
