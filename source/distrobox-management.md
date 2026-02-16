@@ -98,10 +98,8 @@ After editing the INI file, run `dbx apply` to sync.
 
 ## AI Tools Container Isolation
 
-**For AI tools (OpenCode, OpenClaw, Gemini, Qwen) in distrobox containers, see the dedicated skill:**
+AI tools (OpenCode, OpenClaw, Gemini, Qwen) use dedicated config directories inside containers — NOT `~/.config/` (which is shared with host):
 
-**ai-tools-container-isolation** - Complete guide for properly isolating AI tool configurations in containers.
-
-**Key pattern**: Always use `/opt/<tool>/config/` + `/etc/profile.d/<tool>.sh` (NOT `~/.config/` which is shared with host!)
-
-See `~/AI-TOOLS-SETUP.md` and `~/CLAUDE.md` for complete setup examples.
+- Config dir: `/opt/<tool>/config/` or `~/opt-ai-agents/<tool>/`
+- Environment: `/etc/profile.d/<tool>.sh` exports `<TOOL>_CONFIG_DIR`
+- See `~/CLAUDE.md` Container Architecture section for full details
