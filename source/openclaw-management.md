@@ -614,17 +614,18 @@ for path in [
 "
 ```
 
-**Fix — patch the active (most recently modified) store:**
+**Fix — patch the active store (sessions.json + session .jsonl):**
+
+The main session (`agent:main:main`) is stored as a **key** in `sessions.json` — its session UUID is a *value* inside it, not the key itself. The fix must patch `agent:main:main` directly AND patch the session's `.jsonl` compaction file (which embeds the model in every entry).
+
 ```bash
 python3 << 'EOF'
-import json, shutil, time
+import json, shutil, time, os, subprocess
 
-# Use whichever was modified more recently
-import os
 SHADOW  = '/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json'
 LEGACY  = '${HOME}/.openclaw/agents/main/sessions/sessions.json'
 SESSIONS = LEGACY if os.path.getmtime(LEGACY) > os.path.getmtime(SHADOW) else SHADOW
-print(f'Patching: {SESSIONS}')
+print(f'Patching sessions.json: {SESSIONS}')
 shutil.copy2(SESSIONS, SESSIONS + '.bak-' + str(int(time.time())))
 
 with open(SESSIONS) as f:
@@ -632,28 +633,45 @@ with open(SESSIONS) as f:
 
 count = 0
 for k, v in data.items():
-    if isinstance(v, dict):
-        if v.get('modelProvider') in ('google-antigravity', None) or \
-           v.get('model') in ('gemini-3-pro-preview', None, ''):
-            v['modelProvider'] = 'google-gemini-cli'
-            v['model'] = 'gemini-2.5-flash'
-            count += 1
+    if not isinstance(v, dict):
+        continue
+    if v.get('modelProvider') in ('google-antigravity', None) or \
+       v.get('model') in ('gemini-3-pro-preview', None, ''):
+        v['modelProvider'] = 'google-gemini-cli'
+        v['model'] = 'gemini-2.5-flash'
+        # Also fix nested systemPromptReport.model if present
+        if isinstance(v.get('systemPromptReport'), dict):
+            v['systemPromptReport']['model'] = 'gemini-2.5-flash'
+        count += 1
 
 with open(SESSIONS, 'w') as f:
     json.dump(data, f, indent=2)
 print(f'Patched {count} sessions -> google-gemini-cli/gemini-2.5-flash')
 m = data.get('agent:main:main', {})
 print(f"Main session now: provider={m.get('modelProvider')} model={m.get('model')}")
+
+# Also patch the session .jsonl compaction file — it embeds the model in every entry
+jsonl = m.get('sessionFile', '')
+if jsonl and os.path.exists(jsonl):
+    bad_count = int(subprocess.check_output(['grep', '-c', 'gemini-3-pro-preview', jsonl], stderr=subprocess.DEVNULL).strip() or 0)
+    if bad_count > 0:
+        shutil.copy2(jsonl, jsonl + '.bak-' + str(int(time.time())))
+        subprocess.run(['sed', '-i', 's/gemini-3-pro-preview/gemini-2.5-flash/g', jsonl])
+        print(f'Patched {bad_count} occurrences in {jsonl}')
+    else:
+        print(f'.jsonl already clean: {jsonl}')
+else:
+    print(f'No sessionFile found or does not exist: {jsonl!r}')
 EOF
 
-# Then restart gateway to load new session state
+# Restart gateway to load new session state
 pkill -f 'openclaw.*gateway' 2>/dev/null; sleep 4
 openclaw config set gateway.mode local
 openclaw gateway &
 sleep 8 && openclaw status --deep | grep -A15 'Sessions'
 ```
 
-**Prevention:** After any container rebuild, OPENCLAW_HOME change, `openclaw update`, or manual gateway restart, re-run the patch script — the gateway can write a fresh session entry inheriting the stale model from a provider default or existing session template in the legacy store, even if the main session was previously patched. One stale entry per restart is the typical pattern; the patch is idempotent and safe to repeat.
+**Prevention:** After any container rebuild, OPENCLAW_HOME change, `openclaw update`, or manual gateway restart, re-run the patch script — the gateway can write a fresh session entry inheriting the stale model. One stale entry per restart is the typical pattern; the patch is idempotent.
 
 **Reoccurrence after gateway restart / `openclaw update`:** Even after a successful patch, a single new session may appear with `gemini-3-pro-preview` after the next restart. The gateway creates new sessions (e.g. web chat, cron runs) that can inherit the old model. Log signature to watch for:
 ```
@@ -679,8 +697,9 @@ If seen, re-run the patch above (it auto-selects the active store by mtime), the
 | Git `.lock` / `Permission denied` in container | `.git/refs` and `.git/logs` dirs get owned by `root` when git runs under a different UID mapping. `git push` fails with `cannot lock ref ... Permission denied`. Fix: `sudo chown -R yish:yish <repo>/.git` |
 | Session model ≠ config default | Changing `agents.defaults.model.primary` only affects NEW sessions. The running main session reads `modelProvider`+`model` from `sessions.json`, not the config default. Must patch sessions.json and restart gateway. |
 | Empty `[]` assistant content = silent API failure | OpenClaw does not crash on API errors — it logs empty `[]` content and the bot forwards the error text as a chat reply ("400 status code", etc.). Always check session `.jsonl` for `[]` pattern to confirm API-level failure. |
-| `sessions.json` vs `.jsonl` — two separate things | `sessions.json` = metadata store (controls model selection). `.jsonl` files = conversation history (read-only reference). Patching `.jsonl` does nothing to change the model used. |
+| `sessions.json` vs `.jsonl` — both need patching | `sessions.json` = metadata store (controls model selection per session). `.jsonl` files = conversation/compaction log; the gateway embeds the model in every compaction entry and may re-read it when resuming a long-running session. Patch BOTH when fixing a model-locked session (see fix script above). |
 | Main session survives gateway restart | The `agent:main:main` session is long-running. It resumes with its cached `modelProvider`/`model` from `sessions.json` on every gateway restart — changing config defaults alone is not enough. |
+| `agent:main:main` key ≠ session UUID | The main session's model is stored under the literal key `agent:main:main` in `sessions.json`. The session UUID (`132c30fb-...`) appears as a *value* (`sessionId` field) inside that entry, NOT as the key. Searching sessions.json by UUID key will miss this entry entirely. Always check `data['agent:main:main']['model']` directly. |
 | Legacy store can be the active store | `~/.openclaw/agents/main/sessions/sessions.json` is labelled "legacy" but the gateway may write to it actively. Always compare `ls -la` timestamps of both stores to find out which one is newer — that is the one the gateway is using. The newer store is what must be patched when sessions are model-locked. |
 | Model lock reoccurs after each gateway restart | After patching sessions and restarting the gateway (including after `openclaw update`), the gateway may write ONE new session entry with the stale model (`gemini-3-pro-preview`). Re-run the mtime-based patch and restart once more. Typically only one re-patch is needed. Log signature: `embedded run start: ... model=gemini-3-pro-preview → isError=true`. |
 | `status --deep` sessions table reads the active-write store | `openclaw status --deep` shows the model from the sessions.json the gateway last wrote to. If the legacy store is newer, `status` shows legacy store models. This is the correct source for diagnosing model lock issues. |
