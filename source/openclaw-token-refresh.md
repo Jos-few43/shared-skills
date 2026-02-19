@@ -42,9 +42,10 @@ print(f'Match: {t1 == t2} | Token: ...{t1[-20:]}')
 "
 
 # 3. Restart gateway (required — token cached in memory)
-kill $(ps aux | grep 'openclaw.*gateway' | grep -v grep | awk '{print $2}' | head -1) 2>/dev/null
+# Kill ALL gateway processes (there may be multiple)
+ps aux | grep 'openclaw-gateway' | grep -v grep | awk '{print $2}' | xargs -r kill 2>/dev/null
 # Gateway auto-restarts via supervisor; wait 3s then verify:
-sleep 3 && ps aux | grep 'openclaw.*gateway' | grep -v grep | awk '{print $2}' | head -1
+sleep 3 && ps aux | grep 'openclaw-gateway' | grep -v grep | awk '{print $2, $9}'
 ```
 
 ## Automated Refresh
@@ -84,7 +85,8 @@ The sync script only writes when tokens differ. OpenClaw's `chokidar` file watch
 | Issue | Detail |
 |---|---|
 | Gateway caches token in memory | Config file update alone is NOT enough if hot-reload is off. Must restart gateway. |
-| `pkill -f openclaw-gateway` kills shell | The grep pattern matches the bash process running the command. Use `ps aux \| grep` to find PID first, then `kill <PID>`. |
+| `pkill -f openclaw-gateway` kills shell | The grep pattern matches the bash process running the command. Use `ps aux \| grep` + `xargs kill`. |
+| Multiple gateway processes | There may be several `openclaw-gateway` PIDs. Kill ALL of them or the old one keeps serving stale tokens. |
 | Gateway auto-restarts | A supervisor keeps the gateway alive. After `kill`, wait 2-3s — a new process appears automatically. |
 | Token prefix matters | Must start with `sk-ant-oat` for OpenClaw to use Bearer auth with Claude Code identity headers. |
 | Hot-reload scope | Changes to `models.providers.*` are NOT in the base reload rules, so they trigger `restartGateway = true` (full restart, not just reload). This is correct behavior. |
