@@ -20,6 +20,7 @@ Claude Code (.claude/.credentials.json)  -- source of truth, auto-refreshed
         │
         ▼  sync script (or manual)
 OpenClaw (~/.openclaw/openclaw.json)     -- models.providers.anthropic.apiKey
+OpenClaw (~/.openclaw/agents/main/agent/models.json) -- providers.anthropic.apiKey
         │
         ▼  config file change detected (chokidar)
 Gateway process                           -- restarts on unrecognized config path change
@@ -31,14 +32,16 @@ Gateway process                           -- restarts on unrecognized config pat
 # 1. Sync token
 bash ~/.openclaw/sync-anthropic-token.sh
 
-# 2. Verify match
+# 2. Verify match (both files)
 python3 -c "
 import json
 with open('$HOME/.openclaw/openclaw.json') as f:
     t1 = json.load(f)['models']['providers']['anthropic']['apiKey']
+with open('$HOME/.openclaw/agents/main/agent/models.json') as f:
+    t2 = json.load(f)['providers']['anthropic']['apiKey']
 with open('$HOME/.claude/.credentials.json') as f:
-    t2 = json.load(f)['claudeAiOauth']['accessToken']
-print(f'Match: {t1 == t2} | Token: ...{t1[-20:]}')
+    t3 = json.load(f)['claudeAiOauth']['accessToken']
+print(f'openclaw.json match: {t1 == t3} | models.json match: {t2 == t3} | Token: ...{t3[-20:]}')
 "
 
 # 3. Restart gateway (required — token cached in memory)
@@ -78,6 +81,7 @@ The sync script only writes when tokens differ. OpenClaw's `chokidar` file watch
 |---|---|
 | `~/.claude/.credentials.json` | Source — Claude Code OAuth token (auto-refreshed) |
 | `~/.openclaw/openclaw.json` | Target — `models.providers.anthropic.apiKey` |
+| `~/.openclaw/agents/main/agent/models.json` | Target — `providers.anthropic.apiKey` (gateway agent reads from here) |
 | `~/.openclaw/sync-anthropic-token.sh` | Sync script (one-shot or `--watch` mode) |
 
 ## Gotchas
@@ -90,3 +94,4 @@ The sync script only writes when tokens differ. OpenClaw's `chokidar` file watch
 | Gateway auto-restarts | A supervisor keeps the gateway alive. After `kill`, wait 2-3s — a new process appears automatically. |
 | Token prefix matters | Must start with `sk-ant-oat` for OpenClaw to use Bearer auth with Claude Code identity headers. |
 | Hot-reload scope | Changes to `models.providers.*` are NOT in the base reload rules, so they trigger `restartGateway = true` (full restart, not just reload). This is correct behavior. |
+| Two target files | The gateway agent reads the Anthropic key from `models.json`, not `openclaw.json`. The sync script must update both files or the gateway will use a stale token. |
