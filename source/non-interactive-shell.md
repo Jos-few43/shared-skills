@@ -1,6 +1,8 @@
 ---
 name: non-interactive-shell
 description: Use when running shell commands that might prompt for input, confirmation, or launch interactive UI. Use when installing packages, running install scripts, using SSH/SCP, Docker, or any command that could hang waiting for user input.
+version: "1.0.0"
+requires: [shell_exec]
 ---
 
 # Non-Interactive Shell Commands
