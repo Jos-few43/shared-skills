@@ -1,10 +1,42 @@
 #!/bin/bash
 # Propagate source/ skills to all AI tools via symlinks
+# Optionally transpiles universal-format skills first via the transpiler
 set -euo pipefail
 
-SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../source" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SOURCE="$ROOT_DIR/source"
+DIST="$ROOT_DIR/dist"
+TRANSPILER="$ROOT_DIR/transpiler"
 
-# Count both flat .md files and directory-based skills (dir/SKILL.md)
+SKIP_TRANSPILE=false
+if [[ "${1:-}" == "--skip-transpile" ]]; then
+  SKIP_TRANSPILE=true
+fi
+
+# --- Step 1: Transpile (if available) ---
+if [ "$SKIP_TRANSPILE" = false ] && [ -d "$TRANSPILER/node_modules" ]; then
+  echo "Transpiling universal skills..."
+  if (cd "$TRANSPILER" && npx tsx src/index.ts 2>&1); then
+    echo ""
+    USE_DIST=true
+  else
+    echo "  Transpiler failed, falling back to source/"
+    echo ""
+    USE_DIST=false
+  fi
+else
+  if [ "$SKIP_TRANSPILE" = true ]; then
+    echo "Skipping transpile (--skip-transpile)"
+  else
+    echo "Transpiler not installed, using source/ directly"
+    echo "  (run 'cd transpiler && npm install' to enable transpilation)"
+  fi
+  echo ""
+  USE_DIST=false
+fi
+
+# --- Step 2: Count skills ---
 MD_COUNT=0
 for f in "$SOURCE"/*.md; do
   [ -f "$f" ] && MD_COUNT=$((MD_COUNT + 1))
@@ -20,13 +52,14 @@ if [ "$SKILL_COUNT" -eq 0 ]; then
   exit 1
 fi
 
-link_skills() {
+# --- Step 3: Link skills to targets ---
+
+link_skills_from_source() {
   local target_dir=$1
   local tool_name=$2
   mkdir -p "$target_dir"
   local linked=0
 
-  # Flat .md files
   for f in "$SOURCE"/*.md; do
     [ -f "$f" ] || continue
     name=$(basename "$f")
@@ -34,7 +67,6 @@ link_skills() {
     linked=$((linked + 1))
   done
 
-  # Directory-based skills (dir/SKILL.md) — symlink the directory
   for d in "$SOURCE"/*/; do
     [ -f "$d/SKILL.md" ] || continue
     name=$(basename "$d")
@@ -42,28 +74,79 @@ link_skills() {
     linked=$((linked + 1))
   done
 
-  echo "  $tool_name ← $linked skills linked"
+  echo "  $tool_name ← $linked skills linked (from source/)"
 }
 
-echo "Symlinking $SKILL_COUNT skills from $SOURCE"
+link_skills_from_dist() {
+  local target_dir=$1
+  local dist_subdir=$2
+  local tool_name=$3
+  local dist_path="$DIST/$dist_subdir"
+  mkdir -p "$target_dir"
+  local linked=0
+
+  if [ ! -d "$dist_path" ]; then
+    echo "  $tool_name ← dist/$dist_subdir not found, skipping"
+    return
+  fi
+
+  for f in "$dist_path"/*.md; do
+    [ -f "$f" ] || continue
+    name=$(basename "$f")
+    ln -sf "$f" "$target_dir/$name"
+    linked=$((linked + 1))
+  done
+
+  for d in "$dist_path"/*/; do
+    [ -f "$d/SKILL.md" ] || continue
+    name=$(basename "$d")
+    ln -sfn "$d" "$target_dir/$name"
+    linked=$((linked + 1))
+  done
+
+  echo "  $tool_name ← $linked skills linked (from dist/$dist_subdir)"
+}
+
+echo "Distributing $SKILL_COUNT skills"
 echo ""
 
-# Claude Code
-link_skills "$HOME/.claude/plugins/skills" "Claude Code"
+if [ "$USE_DIST" = true ]; then
+  # Claude Code
+  link_skills_from_dist "$HOME/.claude/plugins/skills" "claude-code" "Claude Code"
 
-# OpenCode (ai-agents)
-link_skills "$HOME/opt-ai-agents/opencode/skills" "OpenCode"
+  # OpenCode
+  link_skills_from_dist "$HOME/opt-ai-agents/opencode/skills" "opencode" "OpenCode"
 
-# OpenClaw — config is inside openclaw-dev container at /opt/openclaw/config/
-# Skills live at /opt/openclaw/config/workspace/skills/<name>/SKILL.md
+  # Gemini — link to config dir if it exists
+  if [ -d "$HOME/.config/gemini-cli" ]; then
+    link_skills_from_dist "$HOME/.config/gemini-cli/skills" "gemini" "Gemini CLI"
+  fi
+
+  # Qwen — link to config dir if it exists
+  if [ -d "$HOME/.config/qwen-code" ]; then
+    link_skills_from_dist "$HOME/.config/qwen-code/skills" "qwen" "Qwen Code"
+  fi
+else
+  # Fallback: symlink source/ directly (original behavior)
+  link_skills_from_source "$HOME/.claude/plugins/skills" "Claude Code"
+  link_skills_from_source "$HOME/opt-ai-agents/opencode/skills" "OpenCode"
+fi
+
+# OpenClaw — always uses copy (container isolation)
+OPENCLAW_SOURCE="$SOURCE"
+if [ "$USE_DIST" = true ] && [ -d "$DIST/openclaw" ]; then
+  OPENCLAW_SOURCE="$DIST/openclaw"
+fi
+
 OPENCLAW_STAGING="$HOME/opt-openclaw-skills"
 mkdir -p "$OPENCLAW_STAGING"
-for f in "$SOURCE"/*.md; do
+# Stage flat .md files
+for f in "$OPENCLAW_SOURCE"/*.md; do
   [ -f "$f" ] || continue
   cp "$f" "$OPENCLAW_STAGING/"
 done
-# Copy directory-based skills to staging
-for d in "$SOURCE"/*/; do
+# Stage directory-based skills
+for d in "$OPENCLAW_SOURCE"/*/; do
   [ -f "$d/SKILL.md" ] || continue
   name=$(basename "$d")
   mkdir -p "$OPENCLAW_STAGING/$name"
@@ -74,8 +157,7 @@ OPENCLAW_SKILLS_DIR="/opt/openclaw/config/workspace/skills"
 copied=0
 skipped=0
 if distrobox enter openclaw-dev -- true 2>/dev/null; then
-  # Flat .md skills
-  for f in "$SOURCE"/*.md; do
+  for f in "$OPENCLAW_SOURCE"/*.md; do
     [ -f "$f" ] || continue
     name=$(basename "$f" .md)
     target="$OPENCLAW_SKILLS_DIR/$name/SKILL.md"
@@ -86,8 +168,7 @@ if distrobox enter openclaw-dev -- true 2>/dev/null; then
       skipped=$((skipped + 1))
     fi
   done
-  # Directory-based skills
-  for d in "$SOURCE"/*/; do
+  for d in "$OPENCLAW_SOURCE"/*/; do
     [ -f "$d/SKILL.md" ] || continue
     name=$(basename "$d")
     target="$OPENCLAW_SKILLS_DIR/$name/SKILL.md"
