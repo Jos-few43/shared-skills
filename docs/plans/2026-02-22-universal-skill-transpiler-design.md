@@ -100,8 +100,8 @@ tools:
   shell_exec:
     claude_code: "Bash"
     opencode: "shell"
-    gemini: "run_command"
-    qwen: "exec"
+    gemini: "run_shell_command"
+    qwen: "run_shell_command"
     openclaw: "terminal"
 
   file_read:
@@ -121,29 +121,36 @@ tools:
   file_edit:
     claude_code: "Edit"
     opencode: "edit"
-    gemini: "edit_file"
-    qwen: "edit_file"
+    gemini: "replace"
+    qwen: "edit"
     openclaw: "file_editor"
 
   file_search:
     claude_code: "Glob"
     opencode: "glob"
-    gemini: "find_files"
-    qwen: "find"
+    gemini: "glob"
+    qwen: "glob"
     openclaw: "file_search"
 
   content_search:
     claude_code: "Grep"
     opencode: "grep"
-    gemini: "search_files"
-    qwen: "grep"
+    gemini: "grep_search"
+    qwen: "grep_search"
     openclaw: "search"
+
+  list_dir:
+    claude_code: null
+    opencode: "ls"
+    gemini: "list_directory"
+    qwen: "list_directory"
+    openclaw: "file_browser"
 
   subagent:
     claude_code: "Task"
     opencode: null
     gemini: null
-    qwen: null
+    qwen: "task"
     openclaw: "agent_spawn"
 
   ask_user:
@@ -153,6 +160,20 @@ tools:
     qwen: null
     openclaw: "user_prompt"
 
+  web_fetch:
+    claude_code: "WebFetch"
+    opencode: null
+    gemini: "web_fetch"
+    qwen: "web_fetch"
+    openclaw: null
+
+  web_search:
+    claude_code: "WebSearch"
+    opencode: null
+    gemini: "google_web_search"
+    qwen: "web_search"
+    openclaw: null
+
 capabilities:
   shell_exec:     [claude_code, opencode, gemini, qwen, openclaw]
   file_read:      [claude_code, opencode, gemini, qwen, openclaw]
@@ -160,8 +181,11 @@ capabilities:
   file_edit:      [claude_code, opencode, gemini, qwen, openclaw]
   file_search:    [claude_code, opencode, gemini, qwen, openclaw]
   content_search: [claude_code, opencode, gemini, qwen, openclaw]
-  subagents:      [claude_code, openclaw]
+  list_dir:       [opencode, gemini, qwen, openclaw]
+  subagents:      [claude_code, qwen, openclaw]
   ask_user:       [claude_code, opencode, openclaw]
+  web_fetch:      [claude_code, gemini, qwen]
+  web_search:     [claude_code, gemini, qwen]
   hooks:          [claude_code]
   mcp_servers:    [claude_code, opencode]
 ```
