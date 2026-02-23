@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadMappings, discoverSkills, transpileSkill } from "../src/index.js";
+import { loadMappings, discoverSkills } from "../src/index.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
