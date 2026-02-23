@@ -1,5 +1,5 @@
 import YAML from "yaml";
-import type { SkillAST, SkillFrontmatter, Segment, ToolRefSegment, ConditionalBlock, TextSegment } from "./types.js";
+import type { SkillAST, SkillFrontmatter, Segment, ToolRefSegment, ConditionalBlock } from "./types.js";
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
 const TOOL_REF_RE = /\{\{tool:(\w+)\}\}/g;

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { parse } from "../src/parser.js";
+import type { Segment } from "../src/types.js";
 
 const SIMPLE_SKILL = `---
 name: test-skill
@@ -54,25 +55,25 @@ describe("parser", () => {
 
   it("tokenizes tool references", () => {
     const ast = parse(SIMPLE_SKILL, "test.md");
-    const toolRefs = ast.body.filter((s) => s.type === "tool_ref");
+    const toolRefs = ast.body.filter((s: Segment) => s.type === "tool_ref");
     expect(toolRefs).toHaveLength(1);
     expect(toolRefs[0].type === "tool_ref" && toolRefs[0].tool).toBe("shell_exec");
   });
 
   it("tokenizes conditional blocks", () => {
     const ast = parse(CONDITIONAL_SKILL, "test.md");
-    const conditionals = ast.body.filter((s) => s.type === "conditional");
+    const conditionals = ast.body.filter((s: Segment) => s.type === "conditional");
     expect(conditionals).toHaveLength(1);
     if (conditionals[0].type === "conditional") {
       expect(conditionals[0].capability).toBe("subagents");
-      const innerRefs = conditionals[0].body.filter((s) => s.type === "tool_ref");
+      const innerRefs = conditionals[0].body.filter((s: Segment) => s.type === "tool_ref");
       expect(innerRefs).toHaveLength(1);
     }
   });
 
   it("handles multiple tool refs on same line", () => {
     const ast = parse(NESTED_REFS, "test.md");
-    const toolRefs = ast.body.filter((s) => s.type === "tool_ref");
+    const toolRefs = ast.body.filter((s: Segment) => s.type === "tool_ref");
     expect(toolRefs).toHaveLength(2);
   });
 
