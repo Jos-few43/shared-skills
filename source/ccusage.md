@@ -15,7 +15,7 @@ Runs the `ccusage` CLI tool to display token consumption and cost breakdown for 
 
 ```bash
 # In fedora-tools container (host is immutable)
-distrobox enter fedora-tools -- npm install -g @ryoppippi/ccusage
+distrobox enter fedora-tools -- npm install -g ccusage
 ```
 
 ## When Invoked
@@ -29,7 +29,7 @@ if command -v ccusage &>/dev/null; then
 elif distrobox enter fedora-tools -- command -v ccusage &>/dev/null 2>&1; then
   distrobox enter fedora-tools -- ccusage
 else
-  echo "ccusage not installed. Install with: distrobox enter fedora-tools -- npm install -g @ryoppippi/ccusage"
+  echo "ccusage not installed. Install with: distrobox enter fedora-tools -- npm install -g ccusage"
 fi
 ```
 
