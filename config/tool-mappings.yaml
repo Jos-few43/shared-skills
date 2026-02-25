@@ -90,3 +90,9 @@ capabilities:
   web_search:     [claude_code, gemini, qwen]
   hooks:          [claude_code]
   mcp_servers:    [claude_code, opencode]
+  # Command-specific capabilities
+  shell_inject:     [claude_code, opencode]
+  command_instruction: [claude_code, opencode]
+  allowed_tools_frontmatter: [claude_code, opencode]
+  argument_hint:    [claude_code, opencode]
+  disable_model:    [claude_code, opencode]
