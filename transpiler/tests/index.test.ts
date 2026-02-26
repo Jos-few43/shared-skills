@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadMappings, discoverSkills } from "../src/index.js";
+import { loadMappings, discoverSkills, auditAllSkills } from "../src/index.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -20,6 +20,16 @@ describe("discoverSkills", () => {
     expect(skills.length).toBeGreaterThan(0);
     for (const s of skills) {
       expect(s).toMatch(/\.md$/);
+    }
+  });
+});
+
+describe("auditAllSkills", () => {
+  it("returns reports for all discovered skills", () => {
+    const reports = auditAllSkills();
+    expect(reports.length).toBeGreaterThan(0);
+    for (const r of reports) {
+      expect(r.skillName).toBeTruthy();
     }
   });
 });

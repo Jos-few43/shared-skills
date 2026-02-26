@@ -10,6 +10,9 @@ import { GeminiRenderer } from "./renderers/gemini.js";
 import { QwenRenderer } from "./renderers/qwen.js";
 import { OpenClawRenderer } from "./renderers/openclaw.js";
 import type { ToolMappings, TargetName, Renderer, RenderResult } from "./types.js";
+import { auditSkill, type AuditReport } from "./audit.js";
+
+const rootDir = path.resolve(import.meta.dirname ?? path.dirname(import.meta.url.replace("file://", "")), "../..");
 
 const ALL_TARGETS: TargetName[] = ["claude_code", "opencode", "gemini", "qwen", "openclaw"];
 
@@ -73,6 +76,18 @@ export function transpileSkill(
   };
 }
 
+export function auditAllSkills(sourceDir?: string): AuditReport[] {
+  const dir = sourceDir ?? path.resolve(rootDir, "source");
+  const skillPaths = discoverSkills(dir);
+  const reports: AuditReport[] = [];
+  for (const sp of skillPaths) {
+    const source = fs.readFileSync(sp, "utf-8");
+    const report = auditSkill(source, path.relative(dir, sp));
+    reports.push(report);
+  }
+  return reports;
+}
+
 function writeOutput(distDir: string, target: TargetName, result: RenderResult): void {
   const targetDir = path.join(distDir, target.replace("_", "-"));
   if (result.dirname) {
@@ -91,8 +106,26 @@ function main(): void {
   const targetFlag = args.indexOf("--target");
   const skillFlag = args.indexOf("--skill");
 
+  if (args.includes("--audit")) {
+    const reports = auditAllSkills();
+    let needsWork = 0;
+    for (const r of reports) {
+      if (r.hardcodedTools.length > 0 || r.suggestedRequires.length > 0) {
+        needsWork++;
+        console.log(`\n⚠ ${r.skillName} (${r.sourcePath})`);
+        if (r.hardcodedTools.length > 0)
+          console.log(`  Hardcoded tools: ${r.hardcodedTools.join(", ")}`);
+        if (r.missingToolRefs.length > 0)
+          console.log(`  Suggested refs: ${r.missingToolRefs.join("; ")}`);
+        if (r.suggestedRequires.length > 0)
+          console.log(`  Suggested requires: ${r.suggestedRequires.join(", ")}`);
+      }
+    }
+    console.log(`\n${reports.length} skills audited, ${needsWork} need enrichment`);
+    process.exit(0);
+  }
+
   // Resolve paths relative to the transpiler's parent (shared-skills root)
-  const rootDir = path.resolve(import.meta.dirname ?? path.dirname(import.meta.url.replace("file://", "")), "../..");
   const configPath = path.join(rootDir, "config", "tool-mappings.yaml");
   const sourceDir = path.join(rootDir, "source");
   const distDir = path.join(rootDir, "dist");
