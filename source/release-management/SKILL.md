@@ -1,6 +1,8 @@
 ---
 name: release-management
 description: Use when preparing releases, creating changelogs, tagging versions, publishing packages, or managing release branches.
+requires:
+  - shell_exec
 ---
 
 # Release Management

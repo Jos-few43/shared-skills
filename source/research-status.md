@@ -1,6 +1,8 @@
 ---
 name: research-status
 description: Show the research pipeline dashboard — health, vault metrics, queue state, recent activity, and quality summary.
+requires:
+  - shell_exec
 ---
 
 # Research Pipeline Status Dashboard
