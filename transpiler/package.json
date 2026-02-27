@@ -1,15 +1,32 @@
 {
   "name": "skill-transpile",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Universal skill transpiler — convert shared AI skill definitions to Claude Code, OpenCode, Gemini, Qwen, and OpenClaw formats",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "skills",
+    "claude",
+    "opencode",
+    "gemini",
+    "transpiler",
+    "prompt-engineering"
+  ],
   "type": "module",
   "bin": {
     "skill-transpile": "./dist/index.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "transpile": "tsx src/index.ts"
+    "transpile": "tsx src/index.ts",
+    "prepublishOnly": "npm run build && npm test"
   },
   "devDependencies": {
     "typescript": "^5.7.0",
