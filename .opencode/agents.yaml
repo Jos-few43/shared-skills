@@ -1,0 +1,43 @@
+# Agent Council Configuration — shared-skills
+# Tier 1: Full 5-agent council for code projects
+
+agents:
+  sisyphus:
+    model: claude-opus-4-6-thinking
+    role: Orchestrator
+    description: >
+      Primary agent for complex multi-step tasks. Breaks down features into
+      subtasks, coordinates between agents, handles implementation.
+    strengths: [multi-step reasoning, code generation, task decomposition]
+
+  oracle:
+    model: claude-opus-4-6
+    role: Architecture & Debugging
+    description: >
+      Architecture review, debugging, root cause analysis. Consult oracle
+      when stuck on bugs or making design decisions.
+    strengths: [debugging, architecture review, root cause analysis, code review]
+
+  prometheus:
+    model: gemini-3-pro-high
+    role: Strategic Planning
+    description: >
+      Strategic planning with large context window (1M tokens). Use for
+      analyzing entire codebase, planning refactors, reviewing PRs.
+    strengths: [large context analysis, strategic planning, codebase-wide review]
+
+  explore:
+    model: gemini-3-flash
+    role: Codebase Search
+    description: >
+      Fast file discovery and codebase search. Use for finding files,
+      grepping patterns, reading configs.
+    strengths: [file discovery, pattern search, quick reads]
+
+  librarian:
+    model: gemini-3-flash
+    role: Documentation
+    description: >
+      Documentation lookup and cross-referencing. Use for checking API docs,
+      finding examples, verifying conventions.
+    strengths: [docs lookup, cross-referencing, convention checking]
