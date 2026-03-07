@@ -1,8 +1,8 @@
 ---
 name: ingest
 description: Ingest a URL into the Obsidian vault — classify it, create an inbox stub, and queue for deep processing. Supports arXiv, GitHub, HuggingFace, YouTube, npm, PyPI, docs, news, social media, PDFs, and more.
-requires:
-  - shell_exec
+argument-hint: "[url]"
+allowed-tools: Bash(*)
 ---
 
 # Link Ingestion

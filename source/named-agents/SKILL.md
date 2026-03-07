@@ -1,9 +1,8 @@
 ---
 name: named-agents
 description: "Named specialist agent council for structured delegation"
-version: "1.0.0"
-requires: [subagents]
 targets_only: [claude_code]
+allowed-tools: Task
 ---
 
 # Named Agent Council

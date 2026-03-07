@@ -6,6 +6,7 @@ description: >-
   session state model, credentials location, workspace paths, or provider
   configuration structure. Reference skill for openclaw-operations and
   openclaw-troubleshooting.
+user-invocable: false
 ---
 
 # OpenClaw Architecture

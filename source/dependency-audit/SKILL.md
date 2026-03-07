@@ -1,9 +1,8 @@
 ---
 name: dependency-audit
 description: Use when running a security audit on dependencies, scanning for vulnerabilities, checking for outdated packages, or triaging CVEs in a project. Covers bun, npm, pip, cargo, and Go ecosystems.
-version: "1.0.0"
-requires:
-  - shell_exec
+context: fork
+allowed-tools: Bash(*)
 ---
 
 # Dependency Audit — Security & Vulnerability Scanning

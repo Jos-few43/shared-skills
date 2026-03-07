@@ -1,8 +1,9 @@
 ---
 name: action-dashboard
 description: Review, approve, reject, and implement queued actions from the research-to-implementation pipeline.
-requires:
-  - shell_exec
+argument-hint: "[approve|reject|list]"
+disable-model-invocation: true
+allowed-tools: Bash(*)
 ---
 
 # Action Dashboard

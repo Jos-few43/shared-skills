@@ -1,8 +1,8 @@
 ---
 name: container-ops
 description: Use when managing distrobox containers, troubleshooting container issues, or running commands across containers on Bazzite (immutable Fedora Atomic).
-requires:
-  - shell_exec
+argument-hint: "[container] [command]"
+allowed-tools: Bash(*)
 ---
 
 # Container Operations

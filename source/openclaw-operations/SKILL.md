@@ -6,9 +6,7 @@ description: >-
   about expected healthy state, autonomy rules, usage tracking, or
   auto-rotator status. See openclaw-architecture for file paths and
   openclaw-troubleshooting for failure fixes.
-requires:
-  - shell_exec
-  - file_read
+allowed-tools: Bash(*), Read, Glob, Grep
 ---
 
 # OpenClaw Operations

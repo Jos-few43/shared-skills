@@ -1,9 +1,8 @@
 ---
 name: arr-media-stack
 description: Use when managing the Docker *arr media stack, troubleshooting containers, viewing logs, updating images, adding services, or fixing permissions. Use when user mentions Radarr, Sonarr, Lidarr, Readarr, Whisparr, Bazarr, Prowlarr, qBittorrent, Jellyfin, Traefik, Homarr, FlareSolverr, Unpackerr, or the media stack.
-requires:
-  - shell_exec
-  - file_read
+argument-hint: "[service] [action]"
+allowed-tools: Bash(*), Read, Glob, Grep
 ---
 
 # *Arr Media Stack Management

@@ -1,6 +1,7 @@
 ---
 name: context-audit
 description: Use when context feels bloated, responses are slow, or before long implementation sessions. Analyzes current context usage and recommends /compact or /clear strategies.
+allowed-tools: Bash(*)
 ---
 
 # Context Audit — Optimize Your Context Window

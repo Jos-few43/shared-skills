@@ -1,10 +1,8 @@
 ---
 name: secrets-management
 description: Use when managing API keys, credentials, tokens, passwords, or .env files. Use when user mentions secrets, rotating keys, injecting credentials, checking expiry, or adding new API keys to services. Also use when creating new containers or services that need credentials.
-requires:
-  - shell_exec
-  - file_read
-  - file_write
+argument-hint: "[list|set|inject|rotate] [key]"
+allowed-tools: Bash(*), Read, Glob, Grep, Write, Edit
 ---
 
 # Secrets Management

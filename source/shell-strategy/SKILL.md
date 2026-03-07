@@ -1,10 +1,7 @@
 ---
 name: shell-strategy
 description: Use for all shell operations in non-interactive environments - handles non-interactive flags, environment variables, and prevents command hangs.
-requires:
-  - shell_exec
-  - file_read
-  - file_write
+allowed-tools: Bash(*), Read, Glob, Grep, Write, Edit
 ---
 
 # Shell Non-Interactive Strategy

@@ -1,9 +1,7 @@
 ---
 name: feature-toggle
 description: Enable or disable features via config changes with recorded rollback instructions.
-requires:
-  - shell_exec
-  - file_read
+allowed-tools: Bash(*), Read, Glob, Grep
 ---
 
 # Feature Toggle

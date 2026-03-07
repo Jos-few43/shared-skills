@@ -5,10 +5,7 @@ description: >-
   token. Use when OpenClaw returns "oauth expired", 401/403 errors, or empty
   responses after token rotation. Use when tokens are mismatched between Claude
   Code and OpenClaw.
-requires:
-  - shell_exec
-  - file_read
-  - file_write
+allowed-tools: Bash(*), Read, Glob, Grep, Write, Edit
 ---
 
 # OpenClaw Anthropic Token Refresh

@@ -1,6 +1,8 @@
 ---
 name: stack-status-command
 description: Use when user wants to see the status of all containers, LiteLLM proxy, and services in the development stack.
+argument-hint: "[service-name]"
+allowed-tools: Bash(*)
 ---
 
 # Stack Status Command

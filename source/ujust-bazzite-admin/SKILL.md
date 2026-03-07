@@ -1,6 +1,7 @@
 ---
 name: ujust-bazzite-admin
 description: Use when performing system administration, configuration, troubleshooting, or installing software on a Bazzite (immutable Fedora atomic) host. Use when user mentions ujust, system updates, boot logs, GRUB, SSH, Tailscale, snapshots, NVIDIA drivers, virtualization, audio fixes, or gaming setup on Bazzite.
+allowed-tools: Bash(*)
 ---
 
 # ujust — Bazzite System Administration

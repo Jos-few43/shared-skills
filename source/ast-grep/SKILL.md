@@ -1,8 +1,7 @@
 ---
 name: ast-grep
 description: "Structural code search and refactoring using ast-grep (sg)"
-version: "1.0.0"
-requires: [shell_exec]
+allowed-tools: Bash(*)
 ---
 
 # AST-grep (sg) — Structural Code Operations

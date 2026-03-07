@@ -1,8 +1,10 @@
 ---
 name: research-run
 description: Manually trigger the research pipeline — run full pipeline, research a specific topic, scan only, or reprocess an existing report.
-requires:
-  - shell_exec
+argument-hint: "[topic|--scan|--reprocess]"
+context: fork
+disable-model-invocation: true
+allowed-tools: Bash(*)
 ---
 
 # Research Pipeline Runner

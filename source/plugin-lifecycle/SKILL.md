@@ -1,9 +1,8 @@
 ---
 name: plugin-lifecycle
 description: Install, upgrade, disable, or remove plugins for Claude Code or OpenCode.
-requires:
-  - shell_exec
-  - file_read
+argument-hint: "[install|remove|list] [plugin-name]"
+allowed-tools: Bash(*), Read, Glob, Grep
 ---
 
 # Plugin Lifecycle

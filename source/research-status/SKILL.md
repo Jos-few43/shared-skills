@@ -2,8 +2,7 @@
 name: research-status
 description: Show the research pipeline dashboard — health, vault metrics, queue state, recent activity, quality summary. Also view and modify research pipeline configuration.
 targets_only: [claude_code]
-requires:
-  - shell_exec
+allowed-tools: Bash(*)
 ---
 
 # Research Pipeline Status Dashboard

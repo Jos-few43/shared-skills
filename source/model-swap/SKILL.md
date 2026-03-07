@@ -1,10 +1,8 @@
 ---
 name: model-swap
 description: Add, modify, or remove models in the LiteLLM proxy configuration (blue/green instances).
-requires:
-  - shell_exec
-  - file_read
-  - file_edit
+argument-hint: "[add|remove|list] [model-name]"
+allowed-tools: Bash(*), Read, Glob, Grep, Edit
 ---
 
 # Model Swap

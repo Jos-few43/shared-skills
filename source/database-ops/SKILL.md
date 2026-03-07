@@ -1,8 +1,7 @@
 ---
 name: database-ops
 description: Use when working with databases — migrations, queries, schema design, backups, and troubleshooting. Covers SQLite, PostgreSQL, and container-based database services.
-requires:
-  - shell_exec
+allowed-tools: Bash(*)
 ---
 
 # Database Operations

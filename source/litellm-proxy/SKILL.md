@@ -4,9 +4,8 @@ description: >-
   Manage the LiteLLM blue-green proxy stack. Use when promoting, rolling back,
   checking status, or upgrading LiteLLM instances. Use when user asks about
   LiteLLM, API proxy, blue-green deployment, or wants to upgrade/rollback the proxy.
-requires:
-  - shell_exec
-  - file_read
+argument-hint: "[promote|rollback|status]"
+allowed-tools: Bash(*), Read, Glob, Grep
 ---
 
 # LiteLLM Blue-Green Proxy

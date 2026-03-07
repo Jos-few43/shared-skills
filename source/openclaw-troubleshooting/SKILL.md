@@ -1,8 +1,5 @@
 ---
 name: openclaw-troubleshooting
-requires:
-  - shell_exec
-  - file_write
 description: >-
   Use when OpenClaw has errors, failures, or unexpected behavior. Use when
   plugins are disabled, Telegram shows "no token" or "SETUP", bot returns
@@ -10,6 +7,7 @@ description: >-
   credentials are missing, state is split, or usage tracker shows wrong data.
   See openclaw-architecture for file paths and openclaw-operations for
   normal CLI commands.
+allowed-tools: Bash(*), Write, Edit
 ---
 
 ## Known Failure Patterns & Fixes

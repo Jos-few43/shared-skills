@@ -1,9 +1,8 @@
 ---
 name: github-pr-review
 description: Use when reviewing a pull request, conducting a code review, or giving structured feedback on a contribution. Covers security, tests, style, and tone guidelines.
-version: "1.0.0"
-requires:
-  - shell_exec
+context: fork
+allowed-tools: Bash(*)
 ---
 
 # GitHub PR Review — Systematic Code Review

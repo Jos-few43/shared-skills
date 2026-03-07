@@ -2,6 +2,7 @@
 name: project-setup
 description: Use when entering a new project directory for the first time or when setting up Claude Code configuration for a project. Scans for project indicators, suggests model selection, and recommends relevant skills.
 targets_only: [claude_code]
+allowed-tools: Bash(*), Read, Glob, Grep
 ---
 
 # Project Setup — Configure Claude for This Project

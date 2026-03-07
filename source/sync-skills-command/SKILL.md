@@ -1,8 +1,8 @@
 ---
 name: sync-skills-command
 description: Use when user wants to synchronize shared skills across all AI tools (Claude Code, OpenCode, OpenClaw). Propagates skill changes from the shared source to each tool's skill directory.
-requires:
-  - shell_exec
+disable-model-invocation: true
+allowed-tools: Bash(*)
 ---
 
 # Sync Skills Command

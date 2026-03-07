@@ -1,8 +1,9 @@
 ---
 name: deep-research
 description: Use when you want to deeply research a topic and store the report in the Obsidian vault with proper backlinks, tagging, and folder structure. Also use with /deep-research --discover to scan for vault knowledge gaps.
-requires:
-  - shell_exec
+argument-hint: "[topic]"
+context: fork
+allowed-tools: Bash(*), Write, Edit, WebSearch, WebFetch
 ---
 
 # Deep Research — Vault-Integrated Research Reports

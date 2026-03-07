@@ -1,6 +1,8 @@
 ---
 name: quicktest
 description: Use when you want to run tests for the current project. Auto-detects the test runner (npm, pytest, cargo, go, make) and runs the appropriate test command.
+argument-hint: "[test-path]"
+allowed-tools: Bash(*)
 ---
 
 # Quick Test — Auto-Detect & Run Tests
