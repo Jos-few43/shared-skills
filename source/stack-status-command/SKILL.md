@@ -7,6 +7,9 @@ allowed-tools: Bash(*)
 
 # Stack Status Command
 
+## Live status
+!`docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null || echo "Docker not available"`
+
 Show comprehensive status of the entire development stack.
 
 ## Commands to Run

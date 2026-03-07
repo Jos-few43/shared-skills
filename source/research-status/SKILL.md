@@ -7,6 +7,9 @@ allowed-tools: Bash(*)
 
 # Research Pipeline Status Dashboard
 
+## Current pipeline state
+!`cat ~/shared-skills/metrics/research-pipeline.json 2>/dev/null || echo "No pipeline metrics yet"`
+
 When invoked, gather and display these sections:
 
 ## 1. Pipeline Health

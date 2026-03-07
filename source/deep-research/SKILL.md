@@ -37,26 +37,7 @@ Usage: `/deep-research --discover`
 
 ## Report Format
 
-Use the 8-section format from `~/SCRiPTz/templates/research-system-prompt.md`:
-
-1. Executive Summary (3-8 sentences, no filler)
-2. Background & Context
-3. Technical Details (code, citations)
-4. Implementation Guide (Bazzite/containers/GPU specific)
-5. Stack Implications (impact table)
-6. Production Caveats & Anti-Patterns (≥3 failure modes)
-7. Follow-up Research Topics (2-5 items)
-8. Sources (numbered bibliography)
-
-Include YAML frontmatter with: title, version, date, type, status, priority, theme, tags, stack_relevance, gap_type, generated_by, sources, related wikilinks.
-
-## Quality Gates
-
-| Priority | Min Lines | Min Sources | Code Required | Follow-ups |
-|---|---|---|---|---|
-| P1 | 800 | 5 | Yes (runnable) | 3+ |
-| P2 | 500 | 3 | Yes (runnable) | 2+ |
-| P3 | 300 | 3 | Recommended | 2+ |
+For the report template, see [templates/report-template.md](templates/report-template.md)
 
 ## After Writing
 
