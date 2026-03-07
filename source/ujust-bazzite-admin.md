@@ -5,49 +5,15 @@ description: Use when performing system administration, configuration, troublesh
 
 # ujust — Bazzite System Administration
 
-## Overview
+Always prefer `ujust` over manual `systemctl`/`rpm-ostree`/`dnf` — recipes handle edge cases, SELinux, firewall, and immutable-OS constraints.
 
-`ujust` is Bazzite's built-in command runner (based on `just`) providing 100+ pre-built recipes for system administration, hardware configuration, gaming setup, and troubleshooting. **Always prefer ujust over manual systemctl/rpm-ostree/dnf commands** — recipes handle edge cases, SELinux, firewall, and immutable-OS constraints automatically.
+**Non-interactive mode required:** Always pass ACTION directly (`ujust toggle-ssh enable`, not `ujust toggle-ssh`). Discover actions: `ujust <recipe> help`
 
-## Critical: Non-Interactive Mode
-
-Many ujust recipes launch interactive menus by default. **Claude Code cannot interact with menus.** Always pass the ACTION parameter directly:
-
-```bash
-# WRONG — launches interactive menu, hangs in Claude Code
-ujust toggle-ssh
-ujust configure-grub
-ujust configure-snapshots
-
-# CORRECT — skips menu, executes directly
-ujust toggle-ssh enable
-ujust configure-grub show
-ujust configure-snapshots enable
-```
-
-To discover available actions for any recipe: `ujust <recipe> help`
-
-## Autonomy Rules
-
-**Do freely (read-only / safe):**
-- `ujust --list` — list all recipes
-- `ujust <recipe> help` — show recipe options
-- `ujust logs-this-boot`, `ujust logs-last-boot` — view logs
-- `ujust bios-info`, `ujust device-info` — system info
-- `ujust changelogs` — view changelogs
-- `ujust benchmark` — run benchmark
-- `ujust get-logs` — collect logs to pastebin
-
-**Confirm with user first:**
-- `ujust update` — full system update (flatpaks, containers, system)
-- `ujust clean-system` — prunes podman, flatpak, rpm-ostree, brew
-- `ujust bios` — reboots into BIOS
-- Any `configure-*`, `toggle-*`, `setup-*`, `enable-*`, `install-*` recipe
-- Any recipe that requires reboot to take effect
+**Autonomy:** {{tool:file_read}}-only commands (`--list`, `help`, `logs-*`, `*-info`, `changelogs`, `benchmark`) are safe. Confirm with user for any `configure-*`, `toggle-*`, `setup-*`, `enable-*`, `install-*`, `update`, `clean-system`, or reboot-requiring recipe.
 
 ## Quick Reference — System
 
-| Task | Command | Notes |
+| Action | Command | Notes |
 |------|---------|-------|
 | Update everything | `ujust update` | System + flatpaks + containers + brew |
 | Clean unused packages | `ujust clean-system` | Podman + flatpak + rpm-ostree + brew |
@@ -62,7 +28,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Configuration
 
-| Task | Command | Actions |
+| Action | Command | Actions |
 |------|---------|---------|
 | GRUB visibility | `ujust configure-grub <action>` | `show`, `hide`, `unhide`, `help` |
 | Home snapshots | `ujust configure-snapshots <action>` | `enable`, `disable`, `wipe`, `help` |
@@ -73,7 +39,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Network
 
-| Task | Command | Actions |
+| Action | Command | Actions |
 |------|---------|---------|
 | SSH | `ujust toggle-ssh <action>` | `enable`, `disable`, `help` |
 | Tailscale | `ujust enable-tailscale` | Enables + starts tailscaled |
@@ -82,7 +48,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Hardware & Drivers
 
-| Task | Command | Actions |
+| Action | Command | Actions |
 |------|---------|---------|
 | NVIDIA driver | `ujust configure-nvidia <action>` | Pass `help` for options |
 | NVIDIA Optimus | `ujust configure-nvidia-optimus <action>` | Pass `help` for options |
@@ -95,7 +61,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Audio
 
-| Task | Command | Notes |
+| Action | Command | Notes |
 |------|---------|-------|
 | Fix audio issues | `ujust restart-pipewire` | Fixes crackling/no sound |
 | Virtual channels | `ujust setup-virtual-channels <action>` | Game/Voice/Browser/Music sinks |
@@ -104,7 +70,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Gaming
 
-| Task | Command | Notes |
+| Action | Command | Notes |
 |------|---------|-------|
 | Decky Loader | `ujust setup-decky <action>` | For handheld game mode |
 | Sunshine streaming | `ujust setup-sunshine <action>` | Game streaming host |
@@ -119,7 +85,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Apps & Virtualization
 
-| Task | Command | Notes |
+| Action | Command | Notes |
 |------|---------|-------|
 | Virtualization | `ujust setup-virtualization <action>` | `virt-on`, `virt-off`, `group`, `vfio-on`, `vfio-off`, `help` |
 | Waydroid (Android) | `ujust setup-waydroid <action>` | Android container |
@@ -131,7 +97,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Automounting
 
-| Task | Command |
+| Action | Command |
 |------|---------|
 | Enable all automounting | `ujust enable-automount-all` |
 | Disable all automounting | `ujust disable-automount-all` |
@@ -142,7 +108,7 @@ To discover available actions for any recipe: `ujust <recipe> help`
 
 ## Quick Reference — Other
 
-| Task | Command | Notes |
+| Action | Command | Notes |
 |------|---------|-------|
 | Bazzite CLI tools | `ujust bazzite-cli` | Bluefin-style CLI experience |
 | Password asterisks | `ujust toggle-password-feedback <action>` | `enable`, `disable` |
@@ -154,37 +120,14 @@ To discover available actions for any recipe: `ujust <recipe> help`
 | Idle power draw | `ujust check-idle-power-draw` | Measure power |
 | CEC sleep toggle | `ujust toggle-cec-sleep <action>` | TV standby on sleep |
 
-## Common Patterns
-
-Check available actions before running:
-```bash
-ujust configure-grub help
-ujust toggle-ssh help
-ujust setup-virtualization help
-```
-
-Troubleshooting workflow:
-```bash
-ujust logs-this-boot          # Check current boot
-ujust logs-last-boot          # Check previous boot
-ujust device-info             # System info pastebin
-ujust get-logs                # Collect all logs
-```
-
-Full maintenance:
-```bash
-ujust update                  # Update everything
-ujust clean-system            # Clean unused resources
-```
-
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Running `ujust toggle-ssh` without action | Always pass: `ujust toggle-ssh enable` |
-| Using `systemctl enable sshd` directly | Use `ujust toggle-ssh enable` — handles firewall too |
-| Using `dnf install tailscale` | Use `ujust enable-tailscale` — already pre-installed |
-| Manual `snapper` setup | Use `ujust configure-snapshots enable` — pre-configured |
-| Editing `/etc/default/grub` | Use `ujust configure-grub show` — handles immutable FS |
-| Running `podman system prune` manually | Use `ujust clean-system` — cleans everything |
-| Trying `rpm-ostree install` for ujust apps | Use `ujust install-*` — handles deps and config |
+| Mistake | Use Instead |
+|---------|------------|
+| `ujust toggle-ssh` (no action) | `ujust toggle-ssh enable` |
+| `systemctl enable sshd` | `ujust toggle-ssh enable` (handles firewall) |
+| `dnf install tailscale` | `ujust enable-tailscale` (pre-installed) |
+| Manual `snapper` setup | `ujust configure-snapshots enable` |
+| Editing `/etc/default/grub` | `ujust configure-grub show` (immutable FS) |
+| `podman system prune` | `ujust clean-system` (cleans everything) |
+| `rpm-ostree install` for ujust apps | `ujust install-*` (handles deps) |

@@ -162,7 +162,7 @@ if distrobox enter openclaw-dev -- true 2>/dev/null; then
     name=$(basename "$f" .md)
     target="$OPENCLAW_SKILLS_DIR/$name/SKILL.md"
     if distrobox enter openclaw-dev -- test -f "$target" 2>/dev/null; then
-      distrobox enter openclaw-dev -- cp "${HOME}/opt-openclaw-skills/$(basename "$f")" "$target"
+      distrobox enter openclaw-dev -- cp "$HOME/opt-openclaw-skills/$(basename "$f")" "$target"
       copied=$((copied + 1))
     else
       skipped=$((skipped + 1))
@@ -173,7 +173,7 @@ if distrobox enter openclaw-dev -- true 2>/dev/null; then
     name=$(basename "$d")
     target="$OPENCLAW_SKILLS_DIR/$name/SKILL.md"
     distrobox enter openclaw-dev -- mkdir -p "$OPENCLAW_SKILLS_DIR/$name" 2>/dev/null
-    distrobox enter openclaw-dev -- cp "${HOME}/opt-openclaw-skills/$name/SKILL.md" "$target" 2>/dev/null
+    distrobox enter openclaw-dev -- cp "$HOME/opt-openclaw-skills/$name/SKILL.md" "$target" 2>/dev/null
     copied=$((copied + 1))
   done
   echo "  OpenClaw ← $copied skills copied into container ($skipped skipped — no matching skill dir)"

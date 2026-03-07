@@ -6,6 +6,9 @@ description: >-
   about expected healthy state, autonomy rules, usage tracking, or
   auto-rotator status. See openclaw-architecture for file paths and
   openclaw-troubleshooting for failure fixes.
+requires:
+  - shell_exec
+  - file_read
 ---
 
 # OpenClaw Operations
@@ -95,66 +98,48 @@ openclaw dns / docs / approvals / directory  # Misc helpers
 ---
 
 ## Common Operations
-### Quick Health Check (run first for any issue)
+
+### Quick Health Check
 ```bash
-openclaw status --deep          # Gateway + channels + health table
-openclaw plugins list           # Verify 8/36 loaded (see expected state below)
-openclaw doctor                 # State integrity + credentials + plugin count
+openclaw status --deep && openclaw plugins list && openclaw doctor
 ```
+
 ### Expected Healthy State
-- **Plugins loaded**: 8/36
-- **Required plugins**: `google-antigravity-auth`, `google-gemini-cli-auth`, `qwen-portal-auth`, `telegram`, `device-pair`, `memory-core`, `phone-control`, `talk-voice`
-- **Telegram channel**: `ON / OK` (not `SETUP` or `no token`)
-- **Gateway**: reachable < 100ms
-- **Credentials symlink**: `/opt/openclaw/config/.openclaw/credentials -> ../credentials`
-- **doctor**: 0 CRITICAL items
+
+| Check | Expected |
+|---|---|
+| Plugins | 8/36 loaded: `google-antigravity-auth`, `google-gemini-cli-auth`, `qwen-portal-auth`, `telegram`, `device-pair`, `memory-core`, `phone-control`, `talk-voice` |
+| Telegram | `ON / OK` |
+| Gateway | reachable < 100ms |
+| Credentials | `.openclaw/credentials -> ../credentials` |
+| Doctor | 0 CRITICAL |
+
 ### Auto-Rotator Health Check
 ```bash
 python3 -c "
 import json, datetime; now = datetime.datetime.now().timestamp() * 1000
 d = json.load(open('/opt/openclaw/config/agents/main/agent/auth-profiles.json'))
-print('--- Token Expiry ---')
 for k, v in d.get('profiles', {}).items():
     diff = (v.get('expires', 0) - now) / 1000
     print(k, 'VALID' if diff > 0 else f'EXPIRED {abs(diff)/3600:.1f}h ago')
-print('--- Cooldowns ---')
 for k, v in d.get('usageStats', {}).items():
     diff = (v.get('cooldownUntil', 0) - now) / 1000
     print(k, 'COOLING' if diff > 0 else 'ready', f'errors={v.get(\"errorCount\", 0)}')
 "
 ```
+
 ### Usage Tracker
 ```bash
-node /opt/openclaw/config/workspace/tools/track-usage.cjs             # Session token summary
-python3 /opt/openclaw/config/workspace/scripts/token_alert_daemon.py  # Manual alert check
-openclaw sessions --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['count'],'sessions')"  # Session count
+node /opt/openclaw/config/workspace/tools/track-usage.cjs
+python3 /opt/openclaw/config/workspace/scripts/token_alert_daemon.py
 ```
 
 ---
 
 ## Autonomy Rules
-**Do freely (read-only / non-destructive):**
-- `openclaw status` / `status --deep` / `status --usage` / `status --json`
-- `openclaw health`
-- `openclaw plugins list`
-- `openclaw sessions` / `sessions --json`
-- `openclaw channels` (read operations)
-- `openclaw agents list`
-- `openclaw memory status` / `memory search`
-- `openclaw doctor` (without `--fix`)
-- Read any file in `/opt/openclaw/config/`
-- Token expiry/cooldown check script
-- `node track-usage.cjs` / `python3 token_alert_daemon.py`
-**Confirm with user first:**
-- `openclaw plugins enable/disable <id>` -- changes loaded functionality
-- `openclaw config set <path> <value>` -- modifies active shadow config
-- `openclaw gateway --force` -- **drops active session + context window**
-- `openclaw doctor --fix` -- may reset shadow config (see openclaw-troubleshooting)
-- Session merge script -- writes to active sessions.json
-- `ln -s` credentials symlink -- filesystem change
-- `openclaw reset` -- resets all config/state
-**Never without explicit instruction:**
-- Delete or overwrite `/opt/openclaw/config/openclaw.json` (main config)
-- Delete `~/.openclaw/` (legacy session history)
-- `openclaw uninstall`
-- Remove backup files (`*.bak-*`)
+
+| Level | Commands |
+|---|---|
+| **Do freely** | `status`, `health`, `plugins list`, `sessions`, `channels` (read), `agents list`, `memory status/search`, `doctor` (no --fix), read config files, usage scripts |
+| **Confirm first** | `plugins enable/disable`, `config set`, `gateway --force` (drops session), `doctor --fix`, session merge, credentials symlink, `reset` |
+| **Never** | Delete main config, delete `~/.openclaw/`, `uninstall`, remove `*.bak-*` files |

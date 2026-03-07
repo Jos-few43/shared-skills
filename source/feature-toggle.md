@@ -60,11 +60,13 @@ List recently toggled features from `/tmp/feature-toggle-rollback-*.json`.
 
 ## Common Toggles
 
-| Feature | Config | Setting |
-|---------|--------|---------|
-| Claude Code auto-updates | `~/.claude/settings.json` | `DISABLE_AUTOUPDATER` |
-| OpenCode experimental features | `~/opt-ai-agents/opencode/opencode.json` | `experimental.*` |
-| LiteLLM drop_params | `~/litellm-stack/*/config.yaml` | `litellm_settings.drop_params` |
+<!-- Multi-tool path reference: config locations per tool -->
+| Feature | Tool | Config | Setting |
+|---|---|---|---|
+| Auto-updates | Claude Code | `~/.claude/settings.json` | `DISABLE_AUTOUPDATER` |
+| Experimental features | OpenCode | `~/opt-ai-agents/opencode/opencode.json` | `experimental.*` |
+| LiteLLM drop_params | LiteLLM | `~/litellm-stack/*/config.yaml` | `litellm_settings.drop_params` |
+| Gateway hot-reload | OpenClaw | `~/.openclaw/openclaw.json` | `gateway.reload.mode` |
 
 ## Safety
 

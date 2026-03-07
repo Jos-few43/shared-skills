@@ -13,6 +13,14 @@ requires:
 
 # OpenClaw Anthropic Token Refresh
 
+## Tool Config Paths
+
+<!-- Multi-tool path reference: credential sources vary by tool -->
+| Purpose | Claude Code | OpenCode | OpenClaw |
+|---|---|---|---|
+| OAuth credentials | `~/.claude/.credentials.json` | `~/.config/opencode/antigravity-accounts.json` | `~/.openclaw/openclaw.json` |
+| Agent model config | N/A | N/A | `~/.openclaw/agents/main/agent/models.json` |
+
 ## Overview
 
 OpenClaw uses an Anthropic OAuth token copied from Claude Code's credentials. Claude Code manages token refresh automatically, but the token must be synced into OpenClaw's config and the gateway must pick up the change.

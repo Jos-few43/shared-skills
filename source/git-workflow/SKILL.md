@@ -64,7 +64,7 @@ Every PR must include:
 ## Merge Conflict Resolution
 
 When resolving conflicts:
-1. Read BOTH sides fully before choosing
+1. {{tool:file_read}} BOTH sides fully before choosing
 2. Understand the intent of each change
 3. Prefer the version that preserves more functionality
 4. If unsure, ask the user

@@ -1,6 +1,8 @@
 ---
 name: container-ops
 description: Use when managing distrobox containers, troubleshooting container issues, or running commands across containers on Bazzite (immutable Fedora Atomic).
+requires:
+  - shell_exec
 ---
 
 # Container Operations
@@ -8,7 +10,7 @@ description: Use when managing distrobox containers, troubleshooting container i
 ## Distrobox Basics
 
 - All software runs in distrobox containers (host is immutable)
-- Shared home at `${HOME}` is mounted in all containers
+- Shared home (`$HOME`) is mounted in all containers
 - Container-specific configs go in `~/opt-ai-agents/` or `/opt/<tool>/`
 - Use `distrobox enter <name>` to access containers
 
@@ -88,5 +90,5 @@ EOF
 
 - Never install software on the host (Bazzite is immutable)
 - Never use `~/.config/<tool>/` inside containers — use `/opt/<tool>/`
-- Never hardcode `${HOME}` — use `$HOME` or `${HOME}`
+- Never hardcode absolute home paths — use `$HOME`
 - Never skip sourcing `/etc/profile.d/*.sh` in one-liners

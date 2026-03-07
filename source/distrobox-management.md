@@ -1,6 +1,8 @@
 ---
 name: distrobox-management
 description: Use when user asks to install software, run tools, manage containers, or work in development environments on an immutable Linux host (Bazzite/Fedora atomic). Use when encountering "command not found" on the host.
+requires:
+  - shell_exec
 ---
 
 # Distrobox Management
@@ -33,7 +35,7 @@ Manage distrobox containers on Bazzite (immutable Fedora atomic). Containers are
 | Add new container | `dbx add <name> <image>` |
 | Remove container | `dbx destroy <name>` |
 | Export app to host | `dbx export <name> <app>` |
-| Edit config | `dbx edit` |
+| {{tool:file_edit}} config | `dbx edit` |
 
 ## Autonomy Rules
 

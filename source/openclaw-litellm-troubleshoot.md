@@ -4,6 +4,8 @@ description: >-
   Use when openclaw-litellm has issues — gateway won't start, model gives empty
   responses, Telegram not responding, slow performance, VRAM problems. Provides
   diagnosis decision trees with exact commands.
+requires:
+  - shell_exec
 ---
 
 # OpenClaw LiteLLM Troubleshooting

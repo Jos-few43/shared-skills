@@ -20,7 +20,7 @@ You are in (or about to enter) a **planning phase**. This means architecture dec
 3. **Explore constraints**: What are the technical limitations, dependencies, or requirements?
 4. **Propose approaches**: Present 2-3 options with trade-offs
 5. **Select approach**: Get user approval on direction
-6. **Write the plan**: Detailed implementation steps with file paths and code
+6. **{{tool:file_write}} the plan**: Detailed implementation steps with file paths and code
 
 ## Handoff Protocol
 

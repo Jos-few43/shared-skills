@@ -38,7 +38,7 @@ All alerts are sent simultaneously to:
 
 ## Data Files
 
-| File | Written By | Read By | Purpose |
+| File | Written By | {{tool:file_read}} By | Purpose |
 |------|-----------|---------|---------|
 | `/tmp/openclaw-litellm-health.json` | healthcheck | SessionStart hook | Health snapshot |
 | `/tmp/openclaw-litellm-alert-state.json` | alert script | alert script | Dedup state |
@@ -48,18 +48,18 @@ All alerts are sent simultaneously to:
 ## Tuning
 
 ### Change check interval
-Edit `~/.config/systemd/user/openclaw-litellm-healthcheck.timer`:
+{{tool:file_edit}} `~/.config/systemd/user/openclaw-litellm-healthcheck.timer`:
 ```ini
 OnCalendar=*:0/5   # Change 5 to desired minutes
 ```
 Then: `systemctl --user daemon-reload && systemctl --user restart openclaw-litellm-healthcheck.timer`
 
 ### Change watchdog interval
-Edit `CHECK_INTERVAL=30` in `~/.config/ai-tools-manager/openclaw/scripts/openclaw-litellm-watchdog.sh`
+{{tool:file_edit}} `CHECK_INTERVAL=30` in `~/.config/ai-tools-manager/openclaw/scripts/openclaw-litellm-watchdog.sh`
 Then: `systemctl --user restart openclaw-litellm-watchdog`
 
 ### Change alert cooldown
-Edit `COOLDOWN_SECS=900` in `~/.config/ai-tools-manager/openclaw/scripts/openclaw-litellm-alert.sh`
+{{tool:file_edit}} `COOLDOWN_SECS=900` in `~/.config/ai-tools-manager/openclaw/scripts/openclaw-litellm-alert.sh`
 
 ### Disable specific alert channel
 Comment out the relevant channel section in `openclaw-litellm-alert.sh`.

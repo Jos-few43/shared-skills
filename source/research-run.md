@@ -1,6 +1,8 @@
 ---
 name: research-run
 description: Manually trigger the research pipeline — run full pipeline, research a specific topic, scan only, or reprocess an existing report.
+requires:
+  - shell_exec
 ---
 
 # Research Pipeline Runner
@@ -63,4 +65,4 @@ bash ~/SCRiPTz/run-deep-research.sh {n}
 
 ## Config
 
-Read settings from `~/SCRiPTz/research-config.json` for defaults (max topics, model, quality gates).
+{{tool:file_read}} settings from `~/SCRiPTz/research-config.json` for defaults (max topics, model, quality gates).

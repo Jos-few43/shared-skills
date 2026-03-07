@@ -10,22 +10,24 @@ description: >-
 
 # OpenClaw Architecture
 
-## Environment
+## Key Paths
 
-- **Container**: `openclaw-dev` (distrobox)
-- **Config dir** (`OPENCLAW_CONFIG_DIR`): `/opt/openclaw/config/`
-- **Active state dir** (`OPENCLAW_HOME/.openclaw`): `/opt/openclaw/config/.openclaw/`
-- **Shadow config** (ACTIVE — all CLI writes go here): `/opt/openclaw/config/.openclaw/openclaw.json`
-- **Main config** (reference, full providers/channels): `/opt/openclaw/config/openclaw.json`
-- **Legacy state dir** (historical sessions, do not delete): `~/.openclaw/`
-- **Auth profiles**: `/opt/openclaw/config/agents/main/agent/auth-profiles.json`
-- **Cron jobs**: `/opt/openclaw/config/cron/jobs.json`
-- **Usage stats**: `/opt/openclaw/config/usage-stats.json`
-- **Active session store**: `/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json` (metadata: model, provider)
-- **Session conversation logs**: `/opt/openclaw/config/.openclaw/agents/main/sessions/<uuid>.jsonl` (history — does NOT control model selection)
-- **Config audit log**: `/opt/openclaw/config/.openclaw/logs/config-audit.jsonl`
-- **Telegram bot token**: Managed via chezmoi (~/.config/chezmoi/chezmoi.toml → [data].telegram_bot_token)
-- **Gateway port**: `18789`
+| Path | Purpose |
+|---|---|
+| Container | `openclaw-dev` (distrobox) |
+| Config dir (`OPENCLAW_CONFIG_DIR`) | `/opt/openclaw/config/` |
+| Shadow config (ACTIVE, CLI writes here) | `/opt/openclaw/config/.openclaw/openclaw.json` |
+| Main config (reference only) | `/opt/openclaw/config/openclaw.json` |
+| Active state dir | `/opt/openclaw/config/.openclaw/` |
+| Legacy state (do not delete) | `~/.openclaw/` |
+| Auth profiles | `/opt/openclaw/config/agents/main/agent/auth-profiles.json` |
+| Active session store | `/opt/openclaw/config/.openclaw/agents/main/sessions/sessions.json` |
+| Session logs (history, not model control) | `/opt/openclaw/config/.openclaw/agents/main/sessions/<uuid>.jsonl` |
+| Cron jobs | `/opt/openclaw/config/cron/jobs.json` |
+| Usage stats | `/opt/openclaw/config/usage-stats.json` |
+| Config audit log | `/opt/openclaw/config/.openclaw/logs/config-audit.jsonl` |
+| Telegram bot token | chezmoi: `~/.config/chezmoi/chezmoi.toml` → `[data].telegram_bot_token` |
+| Gateway port | `18789` |
 
 ---
 
@@ -101,21 +103,14 @@ LEGACY STATE: ~/.openclaw/                 # Pre-split state — historical refe
 
 ## Shadow vs Main Config
 
-OpenClaw maintains two config files with distinct roles:
-
-- **Main config** (`/opt/openclaw/config/openclaw.json`) is the full reference configuration containing all provider definitions, plugin declarations, and channel settings. It is read at startup but the CLI never writes to it directly.
-- **Shadow config** (`/opt/openclaw/config/.openclaw/openclaw.json`) is the active runtime copy. Every `openclaw config set` command, plugin toggle, and model default change writes here. Running `openclaw doctor --fix` creates a minimal shadow config if one does not exist.
-
-When diagnosing config issues, always check the **shadow** file first -- it is what the running CLI actually uses. The main config is useful as a reference for the intended full configuration, but edits there have no effect until the shadow is regenerated.
+- **Main config** (`openclaw.json`): Full reference (providers, plugins, channels). {{tool:file_read}} at startup, never written by CLI.
+- **Shadow config** (`.openclaw/openclaw.json`): Active runtime copy. All `config set`, plugin toggles, model defaults write here. `doctor --fix` creates minimal shadow if missing.
+- Always check shadow first when diagnosing — it is what the CLI uses.
 
 ---
 
 ## Session State Model
 
-Session state has two layers that serve different purposes:
-
-1. **Session metadata** (`sessions.json`) -- each entry records `modelProvider` and `model` for that session. These fields control which model is used when resuming the session. Changing config defaults does **not** retroactively update existing sessions; only new sessions pick up the current defaults.
-
-2. **Conversation history** (`.jsonl` files per session UUID) -- these store the message log (user, assistant, tool calls). They are append-only and do **not** influence model selection. Editing or deleting a `.jsonl` file affects displayed history but cannot change which model a session uses.
-
-To change the model for an existing session, update its entry in `sessions.json` or start a new session with the desired defaults.
+- **`sessions.json`** (metadata): `modelProvider` + `model` per session. Controls model on resume. Config defaults only affect NEW sessions.
+- **`.jsonl`** (conversation history): Append-only message log. Does NOT control model selection.
+- To change model for existing session: patch `sessions.json` entry or start new session.

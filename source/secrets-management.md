@@ -55,7 +55,7 @@ When adding a new container or service that needs credentials:
 2. **Create a manifest** at `~/secrets/manifests/<service>.yaml`:
    ```yaml
    container: <service-name>
-   target: ${HOME}/path/to/.env
+   target: $HOME/path/to/.env
    format: env
    secrets:
      ENV_VAR_NAME: namespace.key_name

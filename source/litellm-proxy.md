@@ -4,6 +4,9 @@ description: >-
   Manage the LiteLLM blue-green proxy stack. Use when promoting, rolling back,
   checking status, or upgrading LiteLLM instances. Use when user asks about
   LiteLLM, API proxy, blue-green deployment, or wants to upgrade/rollback the proxy.
+requires:
+  - shell_exec
+  - file_read
 ---
 
 # LiteLLM Blue-Green Proxy
@@ -53,11 +56,11 @@ bash ~/litellm-stack/green/start.sh
 
 ## Promote Green to Active (zero downtime)
 
-Edit `~/litellm-stack/router/haproxy.cfg` to point the active backend from blue (4001) to green (4002), then reload haproxy.
+{{tool:file_edit}} `~/litellm-stack/router/haproxy.cfg` to point the active backend from blue (4001) to green (4002), then reload haproxy.
 
 ## Rollback to Blue
 
-Edit `~/litellm-stack/router/haproxy.cfg` to point the active backend back to blue (4001), then reload haproxy.
+{{tool:file_edit}} `~/litellm-stack/router/haproxy.cfg` to point the active backend back to blue (4001), then reload haproxy.
 
 ## Upgrade LiteLLM (zero downtime)
 
@@ -79,9 +82,9 @@ curl -s http://localhost:4002/health || echo "Green unhealthy — check logs"
 distrobox enter litellm-dev -- pip install -U 'litellm[proxy]'
 ```
 
-## Edit API Keys
+## {{tool:file_edit}} API Keys
 
-Use the Edit tool on these files (do not use nano/vim):
+Use the {{tool:file_edit}} tool on these files (do not use nano/vim):
 
 - Blue: `~/litellm-stack/blue/.env`
 - Green: `~/litellm-stack/green/.env`
@@ -92,7 +95,7 @@ Keep both instances in sync.
 
 **Do freely:**
 - Health checks (`curl`, healthcheck script)
-- Read config files
+- {{tool:file_read}} config files
 
 **Confirm with user first:**
 - Starting/stopping instances

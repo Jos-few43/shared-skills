@@ -1,6 +1,8 @@
 ---
 name: research-config
 description: View and modify research pipeline configuration — max topics, schedule, model, quality gates, notifications.
+requires:
+  - shell_exec
 ---
 
 # Research Pipeline Configuration
@@ -9,7 +11,7 @@ Config file: `~/SCRiPTz/research-config.json`
 
 ## View: `/research-config`
 
-Read and display the current configuration:
+{{tool:file_read}} and display the current configuration:
 
 ```bash
 cat ~/SCRiPTz/research-config.json | jq '.'

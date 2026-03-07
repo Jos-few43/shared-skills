@@ -8,6 +8,14 @@ requires:
 
 # Plugin Lifecycle
 
+## Tool Config Paths
+
+<!-- Multi-tool path reference: use the path matching your current tool -->
+| Purpose | Claude Code | OpenCode |
+|---|---|---|
+| Plugin settings | `~/.claude/settings.json` → `enabledPlugins` | `~/opt-ai-agents/opencode/opencode.json` → `plugins` |
+| Plugin directory | `~/.claude/plugins/` | `~/opt-ai-agents/opencode/plugins/` |
+
 ## Overview
 
 Manages plugin installation, upgrades, and removal for Claude Code and OpenCode. Updates tech radar after changes.

@@ -4,6 +4,8 @@ description: >-
   Use when managing the openclaw-litellm local LLM gateway — restart gateway,
   swap models, check status, pre-warm Ollama models, view logs, clear sessions.
   This is for the LOCAL fully-free LLM setup running on the RTX 3060 via Ollama.
+requires:
+  - shell_exec
 ---
 
 # OpenClaw LiteLLM Operations

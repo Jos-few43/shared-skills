@@ -1,6 +1,8 @@
 ---
 name: deep-research
 description: Use when you want to deeply research a topic and store the report in the Obsidian vault with proper backlinks, tagging, and folder structure. Also use with /deep-research --discover to scan for vault knowledge gaps.
+requires:
+  - shell_exec
 ---
 
 # Deep Research — Vault-Integrated Research Reports
@@ -18,7 +20,7 @@ Usage: `/deep-research {topic}`
 1. Determine the theme (AI-Safety, Token-Efficiency, Infrastructure, Local-Models, Multi-Agent, General)
 2. Check existing vault research at `~/Documents/OpenClaw-Vault/01-RESEARCH/` for prior work
 3. Research using web search, Firecrawl, Context7, HuggingFace, PubMed as appropriate
-4. Write report in 8-section format to `~/Documents/OpenClaw-Vault/01-RESEARCH/{theme}/{slug}.md`
+4. {{tool:file_write}} report in 8-section format to `~/Documents/OpenClaw-Vault/01-RESEARCH/{theme}/{slug}.md`
 5. Run post-processor: `bash ~/SCRiPTz/vault-research-postprocess.sh "{report_path}" "{theme}" "{title}" "{date}"`
 6. Commit: `cd ~/Documents/OpenClaw-Vault && git add -A && git commit -m "research: add {topic} report"`
 7. Report back with summary and vault location

@@ -1,6 +1,8 @@
 ---
 name: ccusage
 description: Use when you want to check Claude Code token usage and costs. Runs the ccusage CLI tool to show daily consumption breakdown.
+requires:
+  - shell_exec
 ---
 
 # ccusage — Token Usage Monitor

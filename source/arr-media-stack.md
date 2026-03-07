@@ -1,6 +1,9 @@
 ---
 name: arr-media-stack
 description: Use when managing the Docker *arr media stack, troubleshooting containers, viewing logs, updating images, adding services, or fixing permissions. Use when user mentions Radarr, Sonarr, Lidarr, Readarr, Whisparr, Bazarr, Prowlarr, qBittorrent, Jellyfin, Traefik, Homarr, FlareSolverr, Unpackerr, or the media stack.
+requires:
+  - shell_exec
+  - file_read
 ---
 
 # *Arr Media Stack Management
@@ -21,7 +24,7 @@ Bazzite uses rootless Podman. Key differences from Docker:
 
 **Always prefer these over raw docker commands:**
 
-| Task | Command |
+| Action | Command |
 |------|---------|
 | Start stack | `~/docker/start-stack.sh` |
 | Stop stack | `~/docker/stop-stack.sh` |
@@ -149,7 +152,7 @@ Then deploy: `cd ~/docker && docker compose up -d service-name`
 **Do freely:**
 - `~/docker/status.sh` — read-only status check
 - `docker compose ps`, `docker compose logs --tail=N` — read-only
-- Read `docker-compose.yml` and config files
+- {{tool:file_read}} `docker-compose.yml` and config files
 
 **Confirm with user first:**
 - `start-stack.sh`, `stop-stack.sh` — starts/stops all services
@@ -168,7 +171,7 @@ Then deploy: `cd ~/docker && docker compose up -d service-name`
 | Paths like `~/docker/downloads/` | Correct: `~/docker/data/downloads/` |
 | Config at `~/docker/service/` | Correct: `~/docker/data/config/service/` |
 | `docker compose logs -f` in Claude Code | Use `docker compose logs --tail=N` (no `-f`) |
-| Using `nano` to edit compose file | Use the Edit tool on `~/docker/docker-compose.yml` |
+| Using `nano` to edit compose file | Use the {{tool:file_edit}} tool on `~/docker/docker-compose.yml` |
 | Wrong network name | Network is `media_network` |
 | Missing Traefik labels on new service | Copy label pattern from existing services |
 | Mounting `/var/run/docker.sock` | Use `/run/user/1000/podman/podman.sock:/var/run/docker.sock:ro` |

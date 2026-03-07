@@ -1,6 +1,8 @@
 ---
 name: container-command
 description: Use when user wants to quickly enter a distrobox container and run a command. Shortcut for container operations.
+requires:
+  - shell_exec
 ---
 
 # Container Command

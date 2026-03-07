@@ -1,6 +1,8 @@
 ---
 name: container-logs
 description: Use when user wants to view container logs, debug container issues, or search for errors in service output.
+requires:
+  - shell_exec
 ---
 
 # Container Logs
