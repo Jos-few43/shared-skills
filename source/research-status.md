@@ -1,6 +1,6 @@
 ---
 name: research-status
-description: Show the research pipeline dashboard — health, vault metrics, queue state, recent activity, and quality summary.
+description: Show the research pipeline dashboard — health, vault metrics, queue state, recent activity, quality summary. Also view and modify research pipeline configuration.
 targets_only: [claude_code]
 requires:
   - shell_exec
@@ -103,3 +103,56 @@ Research topics: {n} pending in TOPICS.md
 - {n} reports under 100 lines
 - {n} reports stale (>90 days)
 ```
+
+## Pipeline Configuration
+
+Config file: `~/SCRiPTz/research-config.json`
+
+### View: `/research-status config`
+
+Read and display the current configuration:
+
+```bash
+cat ~/SCRiPTz/research-config.json | jq '.'
+```
+
+Present as a readable table:
+
+| Setting | Value |
+|---------|-------|
+| Max topics per run | {n} |
+| Schedule | {cron expression} |
+| Model | {model name} |
+| Desktop notifications | {on/off} |
+| Telegram notifications | {on/off} |
+| Vault path | {path} |
+
+Plus quality gates:
+
+| Priority | Min Lines | Min Sources |
+|----------|-----------|-------------|
+| P1 | {n} | {n} |
+| P2 | {n} | {n} |
+| P3 | {n} | {n} |
+
+### Modify: `/research-status config set {key} {value}`
+
+Valid keys:
+- `max_topics` → updates `.max_topics_per_run`
+- `model` → updates `.model` (valid: "sonnet", "haiku", "opus")
+- `notifications.desktop` → updates `.notifications.desktop` (true/false)
+- `notifications.telegram` → updates `.notifications.telegram` (true/false)
+
+```bash
+# Example: set max topics to 5
+jq '.max_topics_per_run = 5' ~/SCRiPTz/research-config.json > /tmp/rc.json && mv /tmp/rc.json ~/SCRiPTz/research-config.json
+```
+
+### Reset: `/research-status config reset`
+
+Show the current config and ask if the user wants to reset to defaults:
+- max_topics_per_run: 3
+- schedule: "0 3 * * *"
+- model: "sonnet"
+- scanner_timeout: 30
+- notifications: both enabled

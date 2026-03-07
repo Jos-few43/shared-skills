@@ -126,3 +126,52 @@ journalctl --user -u openclaw-litellm-watchdog -f
 # View health check logs
 journalctl --user -u openclaw-litellm-healthcheck --since "30 min ago"
 ```
+
+## Health Check Thresholds
+
+| Check | Method | Alert Threshold | Alert Type |
+|-------|--------|----------------|------------|
+| Gateway alive | `ss -tlnp :18790` + `pgrep openclaw-gateway` | Down | `gateway_down` |
+| VRAM usage | `nvidia-smi` | >90% | `vram_high` |
+| Model GPU residency | `ollama/api/ps` → `size_vram/size` | <50% GPU | `model_cpu_offload` |
+| Model response time | Test prompt to Ollama | >15s | `model_slow` |
+| Telegram polling | Check nohup log for errors | 3+ errors | `telegram_error` |
+| Gateway restart failures | Watchdog restart counter | 3 consecutive | `restart_failed` |
+
+## Alert Channels
+
+All alerts are sent simultaneously to:
+1. **systemd journal** — `journalctl --user -t openclaw-litellm`
+2. **Obsidian vault** — `~/Documents/OpenClaw-Vault/12-LOGS/OpenClaw/Gateway/alerts-YYYY-MM-DD.md`
+3. **Telegram** — Message to admin chat via @LocaLLMclawbot bot
+4. **Desktop** — `notify-send` popup with urgency level
+
+**Deduplication**: 15-minute cooldown per alert type. State in `/tmp/openclaw-litellm-alert-state.json`.
+
+## Monitoring Data Files
+
+| File | Written By | Purpose |
+|------|-----------|---------|
+| `/tmp/openclaw-litellm-health.json` | healthcheck | Health snapshot (read by SessionStart hook) |
+| `/tmp/openclaw-litellm-alert-state.json` | alert script | Alert deduplication state |
+| `/tmp/openclaw-gw-llama.log` | gateway nohup | Gateway stdout |
+| `/tmp/openclaw/openclaw-YYYY-MM-DD.log` | gateway internal | Detailed JSONL log (synced to vault) |
+
+## Monitoring Tuning
+
+### Change health check interval
+Edit `~/.config/systemd/user/openclaw-litellm-healthcheck.timer`:
+```ini
+OnCalendar=*:0/5   # Change 5 to desired minutes
+```
+Then: `systemctl --user daemon-reload && systemctl --user restart openclaw-litellm-healthcheck.timer`
+
+### Change watchdog interval
+Edit `CHECK_INTERVAL=30` in `~/.config/ai-tools-manager/openclaw/scripts/openclaw-litellm-watchdog.sh`
+Then: `systemctl --user restart openclaw-litellm-watchdog`
+
+### Change alert cooldown
+Edit `COOLDOWN_SECS=900` in `~/.config/ai-tools-manager/openclaw/scripts/openclaw-litellm-alert.sh`
+
+### Disable specific alert channel
+Comment out the relevant channel section in `openclaw-litellm-alert.sh`.

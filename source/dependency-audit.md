@@ -128,3 +128,46 @@ For bulk updates:
 ```bash
 git commit -m "chore(deps): security audit — patch {N} vulnerabilities"
 ```
+
+## Upgrading Dependencies (Bump)
+
+For routine upgrades (not security-driven), follow this flow:
+
+### Detect package manager
+
+- `bun.lock` or `bun.lockb` → bun
+- `pnpm-lock.yaml` → pnpm
+- `package-lock.json` → npm (prefer bun if available)
+- `requirements.txt` or `pyproject.toml` → pip
+
+### Single package upgrade
+
+```bash
+# bun
+distrobox enter ai-agents -- bash -c "cd {project} && bun update {pkg}"
+
+# pip
+distrobox enter fedora-tools -- bash -c "cd {project} && pip install --upgrade {pkg}"
+```
+
+Always show the version diff before committing:
+
+```bash
+cat {project}/package.json | jq '.dependencies["{pkg}"] // .devDependencies["{pkg}"]'
+```
+
+### All packages
+
+Confirm with user first — this can be disruptive:
+
+```bash
+distrobox enter ai-agents -- bash -c "cd {project} && bun update"
+```
+
+### After upgrading
+
+1. Run tests: `distrobox enter ai-agents -- bash -c "cd {project} && bun test" 2>&1 || true`
+2. Commit: `git add package.json bun.lock* && git commit -m "chore(deps): bump {pkg} from {old} to {new}"`
+3. Update tech radar if dependency is tracked: `bash ~/SCRiPTz/tech-radar-update.sh --component "{pkg}" --field version --value "{new}"`
+
+For major version bumps, warn the user about potential breaking changes before proceeding.

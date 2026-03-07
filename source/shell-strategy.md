@@ -53,6 +53,10 @@ requires:
 | **Bun** | `bun init` | `bun init -y` |
 | **APT** | `apt-get install pkg` | `apt-get install -y pkg` |
 | **APT** | `apt-get upgrade` | `apt-get upgrade -y` |
+| **Pacman** | `pacman -S pkg` | `pacman -S --noconfirm pkg` |
+| **Yay (AUR)** | `yay -S pkg` | `yay -S --noconfirm pkg` |
+| **DNF** | `dnf install pkg` | `dnf install -y pkg` |
+| **Flatpak** | `flatpak install app` | `flatpak install -y app` |
 | **PIP** | `pip install pkg` | `pip install --no-input pkg` |
 | **Homebrew** | `brew install pkg` | `HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg` |
 

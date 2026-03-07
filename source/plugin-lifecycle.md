@@ -92,3 +92,69 @@ Show all installed plugins with their status from the tech radar.
 - Always confirm with user before modifying settings files
 - Back up settings before changes: `cp settings.json settings.json.bak`
 - After changes, verify the JSON is valid: `jq . settings.json > /dev/null`
+
+## Container Plugin Setup (OpenCode in distrobox)
+
+For OpenCode running inside distrobox containers, plugins must be isolated to a container-specific directory — not `~/.config/opencode/` (which is shared with the host).
+
+### Recommended Directory Structure
+
+```
+/opt/opencode/
+├── bin/              # OpenCode binary
+├── plugins/          # Plugin configuration directory
+│   ├── opencode.json
+│   ├── auth.json
+│   ├── node_modules/
+│   ├── <plugin-name>/
+│   └── package.json
+└── README-CONTAINER-SETUP.md
+```
+
+### Required Environment Variables
+
+```bash
+export OPENCODE_CONFIG_DIR=/opt/opencode/plugins
+export OPENCODE_DATA_DIR=/opt/opencode/plugins
+```
+
+Set these in `/etc/profile.d/opencode.sh` (system-wide) and `~/.bashrc` (user-specific) inside the container.
+
+### Plugin Configuration File
+
+`/opt/opencode/plugins/opencode.json`:
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["plugin-name@latest"],
+  "provider": {
+    "provider-name": {
+      "models": {
+        "model-id": {
+          "name": "Display Name",
+          "limit": { "context": 200000, "output": 64000 }
+        }
+      }
+    }
+  }
+}
+```
+
+### Container Plugin Troubleshooting
+
+**Plugin not loading:**
+1. Check env vars: `distrobox enter <container> -- env | grep OPENCODE`
+2. Check plugin dir permissions: `distrobox enter <container> -- ls -la /opt/opencode/plugins/`
+3. Install plugin deps: `distrobox enter <container> -- bash -c "cd /opt/opencode/plugins/<plugin> && npm install"`
+
+**Config not persisting:**
+1. Verify `/etc/profile.d/opencode.sh` exists and is readable
+2. Source manually: `source /etc/profile.d/opencode.sh`
+3. Restart container: `distrobox stop <container>; distrobox enter <container>`
+
+**Broken symlinks:**
+```bash
+distrobox enter <container> -- rm /opt/opencode/plugins/<plugin-link>
+distrobox enter <container> -- sudo cp -r /path/to/plugin /opt/opencode/plugins/
+distrobox enter <container> -- sudo chown -R $USER:$USER /opt/opencode/plugins/
+```
