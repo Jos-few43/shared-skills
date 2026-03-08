@@ -1,6 +1,6 @@
 ---
 name: model-swap
-description: Add, modify, or remove models in the LiteLLM proxy configuration (blue/green instances).
+description: Use when adding, removing, or updating a model entry in the LiteLLM blue or green proxy config. For promote/rollback of the whole proxy, use litellm-proxy instead.
 argument-hint: "[add|remove|list] [model-name]"
 allowed-tools: Bash(*), Read, Glob, Grep, Edit
 ---

@@ -1,6 +1,6 @@
 ---
 name: research-run
-description: Manually trigger the research pipeline — run full pipeline, research a specific topic, scan only, or reprocess an existing report.
+description: Use when running or managing the automated research pipeline — triggering a full pipeline run, queuing a topic, or reprocessing an existing report. For an interactive one-shot deep-dive, use deep-research instead.
 argument-hint: "[topic|--scan|--reprocess]"
 context: fork
 disable-model-invocation: true

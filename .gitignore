@@ -3,3 +3,4 @@ transpiler/node_modules/
 transpiler/dist/
 metrics/*.jsonl
 metrics/*.json
+.claude/

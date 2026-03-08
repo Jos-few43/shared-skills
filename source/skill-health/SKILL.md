@@ -54,3 +54,5 @@ Skills do not auto-record triggers. To log a trigger manually or from a hook, ap
 ```
 
 To wire automatic trigger recording, add a PostToolUse hook that appends to this file whenever a Skill tool call matches a known skill name.
+
+> **Note:** `triggers.jsonl` is created automatically by the PostToolUse hook and may not exist until the hook is configured. The `2>/dev/null` guards in this and other skills handle a missing file safely.

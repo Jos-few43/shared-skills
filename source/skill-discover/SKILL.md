@@ -1,6 +1,6 @@
 ---
 name: skill-discover
-description: Scan recent Claude Code sessions for repeated patterns that could become new skills. Use when you want to grow the skill library based on actual usage.
+description: Scan recent Claude Code sessions for repeated patterns that could become new skills. Use to find candidate skills from actual usage. For analyzing the existing library for duplication or merges, use pattern-promotion instead.
 disable-model-invocation: true
 argument-hint: "[--from-session <id>]"
 allowed-tools: Bash(*), Read, Glob, Grep, Write

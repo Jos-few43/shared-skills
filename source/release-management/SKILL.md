@@ -1,6 +1,6 @@
 ---
 name: release-management
-description: Use when preparing releases, creating changelogs, tagging versions, publishing packages, or managing release branches.
+description: Use when executing a full release workflow — bumping versions, tagging, publishing packages, and managing release branches. For generating only a CHANGELOG.md entry, use changelog-generator instead.
 argument-hint: "[major|minor|patch]"
 disable-model-invocation: true
 allowed-tools: Bash(*)

@@ -1,6 +1,6 @@
 ---
 name: ast-grep
-description: "Structural code search and refactoring using ast-grep (sg)"
+description: Use when searching or refactoring code by structure rather than text — renaming functions across call sites, finding multi-line patterns, or making AST-aware changes that regex cannot handle reliably.
 allowed-tools: Bash(*)
 ---
 

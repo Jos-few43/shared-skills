@@ -20,12 +20,14 @@ allowed-tools: Bash(*)
 |---|---|---|
 | `ai-agents` | OpenCode + Gemini + Qwen | — |
 | `openclaw-dev` | OpenClaw (browser, Telegram, agents) | — |
-| `dev-tools` | Language servers + runtimes | — |
 | `litellm-router` | haproxy reverse proxy | 4000 |
 | `litellm-dev` | LiteLLM blue | 4001 |
 | `litellm-green` | LiteLLM green | 4002 |
 | `fedora-tools` | General CLI | — |
+| `lmstudio-container` | LM Studio local models | — |
+| `warp-term` | Warp terminal | — |
 | `n8n-dev` | n8n workflow automation | 5678 |
+| `langflow-dev` | Langflow AI workflow builder | — |
 
 ## Running Commands in Containers
 
@@ -146,13 +148,6 @@ podman ps --format "{{.Names}}" --all
 **Confirm with user first:** `dbx destroy`, `dbx apply --replace`, removing sections from `containers.ini`, destructive operations inside containers
 
 ### Container Selection by Need
-
-| Need | Container | Package manager |
-|------|-----------|----------------|
-| AUR packages | bazzite-arch | pacman / yay |
-| Fedora packages | fedora-dev | dnf |
-| Ubuntu/Debian compat | ubuntu-compat | apt |
-| Lightweight CLI tools | alpine-tools | apk |
 
 If no suitable container exists, use `dbx add` to create one from an appropriate base image.
 

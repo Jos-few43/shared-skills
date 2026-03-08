@@ -1,6 +1,6 @@
 ---
 name: skill-implement
-description: Generate a full Skills 2.0 skill from an approved candidate proposal. Reads candidate YAML, analyzes referenced sessions, creates complete skill directory.
+description: Implement an approved skill candidate — reads candidate YAML from candidates/, analyzes referenced sessions, and generates a complete Skills 2.0 skill directory. Use after a candidate has been created by skill-discover.
 disable-model-invocation: true
 context: fork
 argument-hint: "<candidate-filename>"

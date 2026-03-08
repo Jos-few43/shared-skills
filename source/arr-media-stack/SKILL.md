@@ -9,7 +9,7 @@ allowed-tools: Bash(*), Read, Glob, Grep
 
 ## Overview
 
-Docker Compose media automation stack at `~/docker/`. Runs on **rootless Podman** (not Docker) via `podman-compose`. Uses `docker compose` (v2, no hyphen) which aliases to podman-compose. All services run on `media_network` bridge with Traefik reverse proxy. PUID/PGID=1000, TZ=America/New_York.
+Docker Compose media automation stack at `~/arr-media-stack/`. Runs on **rootless Podman** (not Docker) via `podman-compose`. Uses `docker compose` (v2, no hyphen) which aliases to podman-compose. All services run on `media_network` bridge with Traefik reverse proxy. PUID/PGID=1000, TZ=America/New_York.
 
 ## Podman Constraints (Bazzite)
 
@@ -25,12 +25,12 @@ Bazzite uses rootless Podman. Key differences from Docker:
 
 | Action | Command |
 |------|---------|
-| Start stack | `~/docker/start-stack.sh` |
-| Stop stack | `~/docker/stop-stack.sh` |
-| Status + resources | `~/docker/status.sh` |
-| Update all images | `~/docker/update-stack.sh` |
-| Logs (all, tailing) | `~/docker/logs.sh` |
-| Logs (one service) | `~/docker/logs.sh <service>` |
+| Start stack | `~/arr-media-stack/start-stack.sh` |
+| Stop stack | `~/arr-media-stack/stop-stack.sh` |
+| Status + resources | `~/arr-media-stack/status.sh` |
+| Update all images | `~/arr-media-stack/update-stack.sh` |
+| Logs (all, tailing) | `~/arr-media-stack/logs.sh` |
+| Logs (one service) | `~/arr-media-stack/logs.sh <service>` |
 
 **WARNING:** `logs.sh` uses `-f` (follow mode) which hangs in Claude Code. For non-interactive log viewing:
 ```bash
@@ -61,7 +61,7 @@ cd ~/docker && docker compose logs --tail=100 <service>
 ## Directory Structure
 
 ```
-~/docker/
+~/arr-media-stack/
 ├── docker-compose.yml
 ├── traefik/              # traefik.yml, dynamic.yml, acme.json
 ├── data/
@@ -93,7 +93,7 @@ cd ~/docker && docker compose ps qbittorrent
 
 Fix permissions:
 ```bash
-sudo chown -R 1000:1000 ~/docker/data/downloads ~/docker/data/media
+sudo chown -R 1000:1000 ~/arr-media-stack/data/downloads ~/arr-media-stack/data/media
 ```
 
 ## Adding a New Service
@@ -141,7 +141,7 @@ Then deploy: `cd ~/docker && docker compose up -d service-name`
 | "statfs /run/docker.sock: no such file" | Mount Podman socket: `/run/user/1000/podman/podman.sock:/var/run/docker.sock:ro` |
 | "manifest unknown" pulling image | Image may lack `latest` tag. Check `podman search --list-tags <image>` for available tags |
 | Web UI not loading | Verify correct host port in table above |
-| Permission denied | `sudo chown -R 1000:1000 ~/docker/data` |
+| Permission denied | `sudo chown -R 1000:1000 ~/arr-media-stack/data` |
 | Network issues between services | Services use container names as hostnames on `media_network` |
 | Unpackerr not extracting | Check API keys are set in `docker-compose.yml` env vars |
 | Reset a service | `cd ~/docker && docker compose rm -f <service> && docker compose up -d <service>` |
@@ -149,7 +149,7 @@ Then deploy: `cd ~/docker && docker compose up -d service-name`
 ## Autonomy Rules
 
 **Do freely:**
-- `~/docker/status.sh` — read-only status check
+- `~/arr-media-stack/status.sh` — read-only status check
 - `docker compose ps`, `docker compose logs --tail=N` — read-only
 - {{tool:file_read}} `docker-compose.yml` and config files
 
@@ -167,10 +167,10 @@ Then deploy: `cd ~/docker && docker compose up -d service-name`
 |---------|-----|
 | Using `docker-compose` (hyphenated, v1) | Use `docker compose` (v2, space) |
 | qBittorrent on port 8080 | Host port is **8081** (8080 is Traefik) |
-| Paths like `~/docker/downloads/` | Correct: `~/docker/data/downloads/` |
-| Config at `~/docker/service/` | Correct: `~/docker/data/config/service/` |
+| Paths like `~/arr-media-stack/downloads/` | Correct: `~/arr-media-stack/data/downloads/` |
+| Config at `~/arr-media-stack/service/` | Correct: `~/arr-media-stack/data/config/service/` |
 | `docker compose logs -f` in Claude Code | Use `docker compose logs --tail=N` (no `-f`) |
-| Using `nano` to edit compose file | Use the {{tool:file_edit}} tool on `~/docker/docker-compose.yml` |
+| Using `nano` to edit compose file | Use the {{tool:file_edit}} tool on `~/arr-media-stack/docker-compose.yml` |
 | Wrong network name | Network is `media_network` |
 | Missing Traefik labels on new service | Copy label pattern from existing services |
 | Mounting `/var/run/docker.sock` | Use `/run/user/1000/podman/podman.sock:/var/run/docker.sock:ro` |

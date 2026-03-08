@@ -1,6 +1,6 @@
 ---
 name: shell-strategy
-description: Use for all shell operations in non-interactive environments - handles non-interactive flags, environment variables, and prevents command hangs.
+description: Use when a shell command is hanging, requires interactive input unavailable in the current environment, or needs non-interactive flags. Covers preventing TTY hangs, exporting required env vars, and choosing between host and container execution.
 allowed-tools: Bash(*), Read, Glob, Grep, Write, Edit
 ---
 
