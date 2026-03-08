@@ -27,8 +27,8 @@ For a deeper check of all AI tools (run in order):
 2. **OpenCode health**: `bash ~/PROJECTz/ai-container-configs/scripts/opencode-healthcheck.sh`
 3. **LiteLLM health**: `bash ~/PROJECTz/ai-container-configs/scripts/litellm-healthcheck.sh`
 4. **OpenClaw config**: `bash ~/.config/ai-tools-manager/openclaw/scripts/verify-config.sh openclaw-dev`
-5. **LSP servers** (if dev-tools running):
-   - `distrobox enter dev-tools -- bash -c 'source /etc/profile.d/dev-tools.sh && which typescript-language-server && which pyright && which gopls && which rust-analyzer'`
+5. **LSP servers** (if fedora-tools running):
+   - `distrobox enter fedora-tools -- bash -c 'which typescript-language-server && which pyright && which gopls && which rust-analyzer' 2>/dev/null`
 
 ## Output Format
 
