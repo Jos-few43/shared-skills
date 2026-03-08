@@ -1,6 +1,6 @@
 ---
 name: feature-toggle
-description: Enable or disable features via config changes with recorded rollback instructions.
+description: Use when enabling or disabling a named feature flag or configuration-controlled feature. Use when you need a recorded, reversible config change with rollback instructions — not for permanent config edits or LiteLLM model changes.
 allowed-tools: Bash(*), Read, Glob, Grep
 ---
 

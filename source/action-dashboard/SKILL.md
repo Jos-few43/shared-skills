@@ -1,6 +1,6 @@
 ---
 name: action-dashboard
-description: Review, approve, reject, and implement queued actions from the research-to-implementation pipeline.
+description: Use when reviewing or acting on queued research actions — approve, reject, or list pending items from the action pipeline. Use when user mentions ACT-xxxx IDs or action queue.
 argument-hint: "[approve|reject|list]"
 disable-model-invocation: true
 allowed-tools: Bash(*)

@@ -1,6 +1,6 @@
 ---
 name: pattern-promotion
-description: Analyze existing skills and session patterns to identify repeated sequences that should be promoted into standalone skills or merged into existing ones. Use to evolve the skill library based on actual usage patterns.
+description: Analyze the existing skill library for duplication, over-specificity, or merge opportunities. Use after the library has grown to identify skills that should be merged, generalized, or split. For discovering new skills from sessions, use skill-discover instead.
 context: fork
 allowed-tools: Bash(*), Read, Glob, Grep, Write
 ---

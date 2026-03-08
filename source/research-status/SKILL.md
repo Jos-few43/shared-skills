@@ -1,6 +1,6 @@
 ---
 name: research-status
-description: Show the research pipeline dashboard — health, vault metrics, queue state, recent activity, quality summary. Also view and modify research pipeline configuration.
+description: Use when checking research pipeline health, vault metrics, queue state, or recent activity without triggering a new run. For pipeline configuration changes, see the Configuration section. For triggering runs, use research-run.
 targets_only: [claude_code]
 allowed-tools: Bash(*)
 ---

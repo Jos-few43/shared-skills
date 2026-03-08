@@ -1,6 +1,6 @@
 ---
 name: stack-status-command
-description: Use when user wants to see the status of all containers, LiteLLM proxy, and services in the development stack.
+description: Use when user wants a quick overview of all running containers, LiteLLM proxy instances, and dev stack services. For deep incident investigation, use incident-commander. For research pipeline state, use research-status.
 argument-hint: "[service-name]"
 allowed-tools: Bash(*)
 ---

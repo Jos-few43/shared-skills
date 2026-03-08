@@ -1,6 +1,6 @@
 ---
 name: named-agents
-description: "Named specialist agent council for structured delegation"
+description: Use when spawning subagents for complex multi-step tasks requiring defined specialist roles (Oracle for architecture, Forge for implementation, Scout for search). Use instead of ad-hoc Task tool calls when structured delegation improves quality.
 targets_only: [claude_code]
 allowed-tools: Task
 ---

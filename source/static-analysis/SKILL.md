@@ -1,6 +1,6 @@
 ---
 name: static-analysis
-description: Run structured static analysis on code to find bugs, security issues, and code quality problems. Use when reviewing code quality, before releases, or as part of a security audit. Complements the sanitize skill with tool-driven analysis.
+description: Run tool-driven static analysis on your own codebase — finding bugs, style issues, and security anti-patterns via linters and analyzers (semgrep, eslint, ruff, clippy, shellcheck). For package vulnerabilities, use dependency-audit. For vetting untrusted code, use sanitize.
 argument-hint: "[file-or-directory]"
 context: fork
 allowed-tools: Bash(*), Read, Glob, Grep, Write

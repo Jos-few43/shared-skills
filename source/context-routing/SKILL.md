@@ -1,6 +1,6 @@
 ---
 name: context-routing
-description: "Use when dispatching subagents via the {{tool:subagent}} tool to ensure minimal context is passed. Applies to any skill or workflow that spawns {{tool:subagent}} subagents."
+description: Use when dispatching subagents via the Task tool to ensure only minimal relevant context is passed. Applies to any workflow that spawns multiple agents to reduce token cost and latency.
 user-invocable: false
 allowed-tools: Write, Edit
 ---

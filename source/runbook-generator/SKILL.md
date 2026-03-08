@@ -1,6 +1,6 @@
 ---
 name: runbook-generator
-description: Generate operational runbooks for services and stacks. Use when documenting startup/shutdown/recovery procedures, on-call guides, or incident response playbooks for containers, LiteLLM, OpenClaw, or media stack.
+description: Use when generating a structured operational runbook for a service — startup, shutdown, health check, and recovery procedures. Use before on-call handoffs, after incident resolution, or when a service lacks documented procedures.
 argument-hint: "[service-or-stack-name]"
 context: fork
 allowed-tools: Bash(*), Read, Glob, Grep, Write

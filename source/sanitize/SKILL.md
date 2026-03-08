@@ -1,6 +1,6 @@
 ---
 name: sanitize
-description: Analyze untrusted scripts and skills for security vulnerabilities before integration. Runs sandboxed static + AI analysis, generates integration plans for safe code, and remediates unsafe-but-useful code.
+description: Use when vetting untrusted external scripts, skills, or tools before integrating them — runs sandboxed static and AI analysis. For security analysis of your own codebase, use static-analysis instead.
 argument-hint: "[file-or-directory]"
 context: fork
 allowed-tools: Bash(*)

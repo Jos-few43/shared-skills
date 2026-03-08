@@ -1,11 +1,6 @@
 ---
 name: openclaw-architecture
-description: >-
-  Use when you need to understand OpenClaw's file layout, config structure,
-  or state directories. Use when asked about shadow config vs main config,
-  session state model, credentials location, workspace paths, or provider
-  configuration structure. Reference skill for openclaw-operations and
-  openclaw-troubleshooting.
+description: Reference skill for understanding OpenClaw file layout, config structure, state directories, shadow config vs main config, session model, credentials, and workspace paths. Background reference; not user-invocable.
 user-invocable: false
 ---
 

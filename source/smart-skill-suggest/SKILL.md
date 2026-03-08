@@ -1,6 +1,6 @@
 ---
 name: smart-skill-suggest
-description: Use when you see system messages suggesting skills, or when you want to understand the automatic skill suggestion system. Documents how hookify rules and hooks proactively recommend skills based on conversation context.
+description: Reference skill documenting how the automatic skill suggestion system works via hookify rules. Not for performing tasks — provides context on proactive skill recommendations.
 user-invocable: false
 ---
 
