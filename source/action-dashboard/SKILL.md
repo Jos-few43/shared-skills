@@ -66,7 +66,7 @@ bash ~/SCRiPTz/action-queue.sh dashboard
 3. Based on `implementation_skill`, load the appropriate skill:
    - `model-swap` → use `/model-swap` skill
    - `plugin-lifecycle` → use `/plugin-lifecycle` skill
-   - `dependency-bump` → use `/dependency-bump` skill
+   - `dependency-audit` → use `/dependency-audit` skill
    - `feature-toggle` → use `/feature-toggle` skill
    - `null` → ask user which approach to take
 4. After implementation, run validation: `bash ~/SCRiPTz/validate-action.sh ACT-xxxx`

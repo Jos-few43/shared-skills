@@ -27,6 +27,8 @@ For each file, extract contiguous instruction blocks of 5 or more lines (excludi
 cat ~/shared-skills/metrics/triggers.jsonl 2>/dev/null | tail -500
 ```
 
+> **Note:** `triggers.jsonl` is created automatically by the PostToolUse hook whenever a Skill tool call matches a known skill name. It may not exist until the hook is configured — the `2>/dev/null` guard above handles this safely.
+
 Parse each `{"date":..., "skill":..., "session":...}` line. Group triggers by session ID. For each session, collect the ordered list of skills triggered. Identify skill pairs that appear in the same session in 3 or more sessions. Identify skill triples that appear together in 2 or more sessions.
 
 **Compose candidate**: frequently co-triggered skills → new composite skill that orchestrates them in sequence.

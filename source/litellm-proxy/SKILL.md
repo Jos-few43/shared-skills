@@ -24,8 +24,7 @@ All AI tools use `http://localhost:4000` as their API base.
 ~/litellm-stack/
 ├── router/haproxy.cfg    # haproxy routing config
 ├── blue/
-│   ├── start.sh          # Start blue instance (port 4001)
-│   └── run.sh            # Run script
+│   └── start.sh          # Start blue instance (port 4001)
 └── green/
     └── start.sh          # Start green instance (port 4002)
 ```

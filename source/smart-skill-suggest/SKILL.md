@@ -17,7 +17,7 @@ Hookify rules match keywords in user prompts to skill categories. When a match i
 When keyword rules don't match, a haiku model analyzes the prompt against all available skills for semantic matching.
 
 ### Layer 3: Implementation Detection (Stop Hook)
-After each turn, the system counts file writes. If 3+ files were written, it suggests using `skill-creator:skill-creator` to capture the work as a reusable skill.
+After each turn, the system counts file writes. If 3+ files were written, it suggests using `skill-implement` to capture the work as a reusable skill.
 
 ## Responding to Suggestions
 
@@ -29,7 +29,7 @@ When you see a skill suggestion:
 
 ## Skill-Writer Prompt
 
-When you see the post-implementation prompt about `skill-creator:skill-creator`:
+When you see the post-implementation prompt about `skill-implement`:
 1. Consider whether the work done would be valuable as a reusable skill
 2. If the implementation involved a repeatable pattern (e.g., "set up a new container", "configure a new *arr service"), suggest to the user: "This implementation could be captured as a reusable skill. Want me to create one?"
 3. If the implementation was one-off, ignore the suggestion
