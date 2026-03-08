@@ -3,15 +3,21 @@
 export interface SkillFrontmatter {
   name: string;
   description: string;
-  version?: string;
-  triggers?: {
-    slash_command?: string;
-    auto_match?: boolean;
-  };
+  // Skills 2.0 fields (pass through for Claude Code, strip for others)
+  "argument-hint"?: string;
+  "disable-model-invocation"?: boolean;
+  "user-invocable"?: boolean;
+  "allowed-tools"?: string;
+  model?: string;
+  context?: "fork";
+  agent?: string;
+  hooks?: Record<string, unknown>;
+  // Transpiler-only fields
   requires?: string[];
   optional?: string[];
   targets?: Record<string, TargetOverride>;
   targets_only?: string[];
+  // REMOVED: version, triggers (no longer in schema)
 }
 
 export interface TargetOverride {

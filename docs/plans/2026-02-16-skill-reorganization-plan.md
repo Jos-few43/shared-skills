@@ -8,7 +8,7 @@
 
 **Tech Stack:** Markdown skill files, bash symlink script, shared-skills git repo at `~/shared-skills/`
 
-**Working directory:** `${HOME}/shared-skills/`
+**Working directory:** `~/shared-skills/`
 
 **Source of truth for current content:** `source/openclaw-management.md` (lines referenced below)
 

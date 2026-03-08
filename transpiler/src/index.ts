@@ -37,9 +37,7 @@ export function loadMappings(configPath: string): ToolMappings {
 }
 
 export function discoverSkills(sourceDir: string): string[] {
-  const flat = glob.sync("*.md", { cwd: sourceDir, absolute: true });
-  const nested = glob.sync("*/SKILL.md", { cwd: sourceDir, absolute: true });
-  return [...flat, ...nested].sort();
+  return glob.sync("*/SKILL.md", { cwd: sourceDir, absolute: true }).sort();
 }
 
 export function transpileSkill(

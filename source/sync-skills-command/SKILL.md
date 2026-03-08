@@ -1,8 +1,8 @@
 ---
 name: sync-skills-command
-description: Use when user wants to synchronize shared skills across all AI tools (Claude Code, OpenCode, OpenClaw).
-requires:
-  - shell_exec
+description: Use when user wants to synchronize shared skills across all AI tools (Claude Code, OpenCode, OpenClaw). Propagates skill changes from the shared source to each tool's skill directory.
+disable-model-invocation: true
+allowed-tools: Bash(*)
 ---
 
 # Sync Skills Command
@@ -15,11 +15,15 @@ Re-run the shared skills synchronization to propagate skill changes to all AI to
 bash ~/shared-skills/scripts/symlink-all.sh
 ```
 
-## What It Does
+## Skill Directories
 
-1. Symlinks all skills from `~/shared-skills/source/` to `~/.claude/skills/` (Claude Code)
-2. Symlinks all skills to `~/opt-ai-agents/opencode/skills/` (OpenCode)
-3. Live-copies skills into `openclaw-dev` container if running, or stages to `~/opt-openclaw-skills/` if stopped
+<!-- Multi-tool path reference: where skills land per tool -->
+| Tool | Skill Directory | Method |
+|---|---|---|
+| Source (shared) | `~/shared-skills/source/` | Canonical source |
+| Claude Code | `~/.claude/plugins/skills/` | Symlink |
+| OpenCode | `~/opt-ai-agents/opencode/skills/` | Symlink |
+| OpenClaw | Container `/opt/openclaw/skills/` or staging `~/opt-openclaw-skills/` | Copy |
 
 ## After Running
 

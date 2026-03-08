@@ -1,8 +1,9 @@
 ---
 name: sanitize
 description: Analyze untrusted scripts and skills for security vulnerabilities before integration. Runs sandboxed static + AI analysis, generates integration plans for safe code, and remediates unsafe-but-useful code.
-requires:
-  - shell_exec
+argument-hint: "[file-or-directory]"
+context: fork
+allowed-tools: Bash(*)
 ---
 
 # Sanitize: Security Analysis Pipeline

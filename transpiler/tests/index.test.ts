@@ -15,11 +15,11 @@ describe("loadMappings", () => {
 });
 
 describe("discoverSkills", () => {
-  it("finds .md files and SKILL.md directories in source/", () => {
+  it("finds only SKILL.md files inside directories in source/", () => {
     const skills = discoverSkills(path.resolve(__dirname, "../../source"));
     expect(skills.length).toBeGreaterThan(0);
     for (const s of skills) {
-      expect(s).toMatch(/\.md$/);
+      expect(s).toMatch(/\/SKILL\.md$/);
     }
   });
 });

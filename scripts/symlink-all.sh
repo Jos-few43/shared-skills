@@ -37,15 +37,10 @@ else
 fi
 
 # --- Step 2: Count skills ---
-MD_COUNT=0
-for f in "$SOURCE"/*.md; do
-  [ -f "$f" ] && MD_COUNT=$((MD_COUNT + 1))
-done
-DIR_COUNT=0
+SKILL_COUNT=0
 for d in "$SOURCE"/*/SKILL.md; do
-  [ -f "$d" ] && DIR_COUNT=$((DIR_COUNT + 1))
+  [ -f "$d" ] && SKILL_COUNT=$((SKILL_COUNT + 1))
 done
-SKILL_COUNT=$((MD_COUNT + DIR_COUNT))
 
 if [ "$SKILL_COUNT" -eq 0 ]; then
   echo "No skills found in $SOURCE"
@@ -59,13 +54,6 @@ link_skills_from_source() {
   local tool_name=$2
   mkdir -p "$target_dir"
   local linked=0
-
-  for f in "$SOURCE"/*.md; do
-    [ -f "$f" ] || continue
-    name=$(basename "$f")
-    ln -sf "$f" "$target_dir/$name"
-    linked=$((linked + 1))
-  done
 
   for d in "$SOURCE"/*/; do
     [ -f "$d/SKILL.md" ] || continue
@@ -90,13 +78,6 @@ link_skills_from_dist() {
     return
   fi
 
-  for f in "$dist_path"/*.md; do
-    [ -f "$f" ] || continue
-    name=$(basename "$f")
-    ln -sf "$f" "$target_dir/$name"
-    linked=$((linked + 1))
-  done
-
   for d in "$dist_path"/*/; do
     [ -f "$d/SKILL.md" ] || continue
     name=$(basename "$d")
@@ -110,10 +91,10 @@ link_skills_from_dist() {
 echo "Distributing $SKILL_COUNT skills"
 echo ""
 
-if [ "$USE_DIST" = true ]; then
-  # Claude Code
-  link_skills_from_dist "$HOME/.claude/plugins/skills" "claude-code" "Claude Code"
+# Claude Code always uses source/ directly (native Skills 2.0 format)
+link_skills_from_source "$HOME/.claude/plugins/skills" "Claude Code"
 
+if [ "$USE_DIST" = true ]; then
   # OpenCode
   link_skills_from_dist "$HOME/opt-ai-agents/opencode/skills" "opencode" "OpenCode"
 
@@ -127,8 +108,7 @@ if [ "$USE_DIST" = true ]; then
     link_skills_from_dist "$HOME/.config/qwen-code/skills" "qwen" "Qwen Code"
   fi
 else
-  # Fallback: symlink source/ directly (original behavior)
-  link_skills_from_source "$HOME/.claude/plugins/skills" "Claude Code"
+  # Fallback: symlink source/ directly for non-Claude-Code tools
   link_skills_from_source "$HOME/opt-ai-agents/opencode/skills" "OpenCode"
 fi
 
@@ -140,11 +120,6 @@ fi
 
 OPENCLAW_STAGING="$HOME/opt-openclaw-skills"
 mkdir -p "$OPENCLAW_STAGING"
-# Stage flat .md files
-for f in "$OPENCLAW_SOURCE"/*.md; do
-  [ -f "$f" ] || continue
-  cp "$f" "$OPENCLAW_STAGING/"
-done
 # Stage directory-based skills
 for d in "$OPENCLAW_SOURCE"/*/; do
   [ -f "$d/SKILL.md" ] || continue
@@ -157,23 +132,12 @@ OPENCLAW_SKILLS_DIR="/opt/openclaw/config/workspace/skills"
 copied=0
 skipped=0
 if distrobox enter openclaw-dev -- true 2>/dev/null; then
-  for f in "$OPENCLAW_SOURCE"/*.md; do
-    [ -f "$f" ] || continue
-    name=$(basename "$f" .md)
-    target="$OPENCLAW_SKILLS_DIR/$name/SKILL.md"
-    if distrobox enter openclaw-dev -- test -f "$target" 2>/dev/null; then
-      distrobox enter openclaw-dev -- cp "${HOME}/opt-openclaw-skills/$(basename "$f")" "$target"
-      copied=$((copied + 1))
-    else
-      skipped=$((skipped + 1))
-    fi
-  done
   for d in "$OPENCLAW_SOURCE"/*/; do
     [ -f "$d/SKILL.md" ] || continue
     name=$(basename "$d")
     target="$OPENCLAW_SKILLS_DIR/$name/SKILL.md"
     distrobox enter openclaw-dev -- mkdir -p "$OPENCLAW_SKILLS_DIR/$name" 2>/dev/null
-    distrobox enter openclaw-dev -- cp "${HOME}/opt-openclaw-skills/$name/SKILL.md" "$target" 2>/dev/null
+    distrobox enter openclaw-dev -- cp "$HOME/opt-openclaw-skills/$name/SKILL.md" "$target" 2>/dev/null
     copied=$((copied + 1))
   done
   echo "  OpenClaw ← $copied skills copied into container ($skipped skipped — no matching skill dir)"
