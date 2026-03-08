@@ -5,7 +5,7 @@ import { loadMappings, transpileSkill } from "../src/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CONFIG = path.resolve(__dirname, "../../config/tool-mappings.yaml");
-const FIXTURE = path.resolve(__dirname, "fixtures/sample-skill.md");
+const FIXTURE = path.resolve(__dirname, "fixtures/sample-skill/SKILL.md");
 
 describe("end-to-end transpile", () => {
   const mappings = loadMappings(CONFIG);
