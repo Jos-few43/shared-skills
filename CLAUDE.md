@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A tool-agnostic skill library for all AI agents in the ecosystem. Skills are authored once in `source/` and automatically propagated via symlinks to Claude Code, OpenCode, Gemini, Qwen, and OpenClaw. Includes a TypeScript transpiler that converts universal skill format (with conditional tool references and capability gates) into tool-specific distributions.
+A tool-agnostic skill library for all AI agents in the ecosystem. Skills are authored once in `source/` using the **Claude Skills 2.0** directory format (`skill-name/SKILL.md`) and automatically propagated via symlinks to Claude Code, OpenCode, Gemini, Qwen, and OpenClaw. Claude Code reads skills natively from `source/`; other tools receive transpiled flat-file output.
 
 ## Tech Stack
 
 | Component | Technology |
 |---|---|
-| Skills | Markdown + YAML frontmatter |
+| Skills | Markdown + YAML frontmatter (Skills 2.0 spec) |
 | Transpiler | TypeScript 5.7, tsx (runner), Vitest 3.0 |
 | Dependencies | yaml, glob (transpiler only) |
 | Distribution | Bash symlink script |
@@ -21,13 +21,17 @@ A tool-agnostic skill library for all AI agents in the ecosystem. Skills are aut
 ```
 shared-skills/
 ├── source/                      # CANONICAL skill source (edit here only)
-│   ├── *.md                     # Flat skills (37 files)
-│   └── <skill-name>/           # Directory-based skills (12 dirs)
-│       └── SKILL.md
+│   └── <skill-name>/           # Skills 2.0 directory format (~38 skills)
+│       ├── SKILL.md            # Core skill (YAML frontmatter + markdown body)
+│       ├── templates/          # Optional supporting files
+│       └── examples/           # Optional examples
+├── candidates/                  # Skill discovery proposals (YAML)
+├── metrics/                     # Trigger logs, health data (local-only, gitignored)
 ├── config/
 │   └── tool-mappings.yaml       # Semantic tool names → per-platform mappings
 ├── scripts/
-│   └── symlink-all.sh           # Propagation: transpile → symlink/copy to all tools
+│   ├── symlink-all.sh           # Propagation: symlink/transpile to all tools
+│   └── health.sh                # Skill health dashboard
 ├── transpiler/
 │   ├── src/
 │   │   ├── index.ts             # CLI entry, skill discovery, output writing
@@ -35,11 +39,11 @@ shared-skills/
 │   │   ├── resolver.ts          # Tool ref + conditional resolution per target
 │   │   ├── renderer.ts          # AST → output string conversion
 │   │   └── renderers/           # claude-code.ts, opencode.ts, gemini.ts, qwen.ts, openclaw.ts
-│   ├── tests/                   # Unit + integration tests
+│   ├── tests/
 │   └── package.json
 ├── dist/                        # Generated transpiled output (gitignored)
 │   └── {claude-code,opencode,gemini,qwen,openclaw}/
-└── docs/plans/                  # Implementation plan documents
+└── docs/plans/
 ```
 
 ## Key Commands
@@ -47,88 +51,125 @@ shared-skills/
 ```bash
 # Propagate skills to all tools (main workflow)
 bash scripts/symlink-all.sh
-bash scripts/symlink-all.sh --skip-transpile   # Use source/ directly
+bash scripts/symlink-all.sh --skip-transpile   # Source-only (no transpile for other tools)
 
-# Transpiler
+# Skill health dashboard
+bash scripts/health.sh
+
+# Transpiler (for OpenCode/OpenClaw/Gemini/Qwen output)
 cd transpiler && npm install
 npx tsx src/index.ts                            # Transpile all
 npx tsx src/index.ts --validate                 # Dry run
-npx tsx src/index.ts --skill non-interactive-shell.md  # Single skill
-npx tsx src/index.ts --target claude_code       # Single target
+npx tsx src/index.ts --target opencode          # Single target
 
 # Tests
 npm run test
 npm run test:watch
 ```
 
-## Architecture
+## Skill Format (Skills 2.0)
 
-### Universal Skill Format
+All skills use the directory format: `source/<skill-name>/SKILL.md`
 
-Skills use tool-agnostic placeholders resolved per target:
-
-```markdown
-Use {{tool:shell_exec}} to run commands.
-{{#if supports:subagents}}
-For multi-step work, use {{tool:subagent}}.
-{{/if}}
-```
-
-### Transpilation Pipeline
-
-1. **Parser**: Split YAML frontmatter from body → tokenize into segments (text, tool_ref, context_inject, conditional)
-2. **Resolver**: Map semantic tool names via `tool-mappings.yaml`, evaluate capability conditionals
-3. **Renderer**: Convert resolved AST to native per-tool markdown format
-
-### Skill Frontmatter Schema
+### Frontmatter Schema
 
 ```yaml
 ---
 name: skill-slug
-description: "One-liner"
-version: "1.0.0"              # optional
-requires: [subagents]          # skip if target lacks capability
-targets_only: [claude_code]    # restrict to specific tools
+description: "Clear description of when to use this skill"
+# Skills 2.0 fields
+argument-hint: "[args]"                 # Hint for argument syntax
+context: fork                           # Run in isolated subagent
+disable-model-invocation: true          # User-invoked only (no auto-trigger)
+user-invocable: false                   # Background/reference only
+allowed-tools: Bash(*), Read, Write     # Tool permissions
+model: sonnet                           # Preferred model
+# Transpiler-only fields (stripped for Claude Code, used for other tools)
+targets_only: [claude_code]             # Restrict to specific tools
 targets:
   openclaw:
-    description: "Override"    # per-target overrides
+    description: "Override"             # Per-target overrides
 ---
 ```
 
-### Distribution Targets
+### Dynamic Context Injection
+
+Skills can inject live data at load time:
+
+```markdown
+## Current status
+!`docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null`
+```
+
+### Supporting Files
+
+Skills can include templates, examples, and scripts alongside SKILL.md:
+
+```
+source/deep-research/
+├── SKILL.md
+└── templates/
+    └── report-template.md
+```
+
+Reference with: `See [templates/report-template.md](templates/report-template.md)`
+
+## Skill Growth System
+
+### Discovery → Implementation → Evaluation
+
+1. **`/skill-discover`** — scans sessions for repeated patterns, writes candidates to `candidates/`
+2. **`/skill-implement <candidate>`** — generates full Skills 2.0 skill from approved candidate
+3. **`/skill-health`** — dashboard showing trigger metrics, staleness, health per skill
+
+### Candidate Lifecycle
+
+`proposed` → `approved` → `implemented` → `evaluated`
+
+Candidates live in `candidates/*.yaml`. Capability uplift skills get 90-day review; workflow skills get 180-day.
+
+## Distribution Pipeline
+
+```
+source/ (Skills 2.0 directories)
+    │
+    ├──→ ~/.claude/plugins/skills/  (direct symlinks, always)
+    │
+    └──→ transpiler → dist/
+              ├── opencode/    (flat .md)
+              ├── openclaw/    (flat .md, copied into container)
+              ├── gemini/      (flat .md)
+              └── qwen/        (flat .md)
+```
+
+Claude Code reads native Skills 2.0 format directly. Transpiler only runs for other tools.
 
 | Tool | Location | Method |
 |---|---|---|
-| Claude Code | `~/.claude/plugins/skills/` | Symlink |
-| OpenCode | `~/opt-ai-agents/opencode/skills/` | Symlink |
-| OpenClaw | `/opt/openclaw/config/workspace/skills/` | Copy (container) |
-| Gemini CLI | `~/.config/gemini-cli/skills/` | Symlink (if exists) |
-| Qwen Code | `~/.config/qwen-code/skills/` | Symlink (if exists) |
-
-## Configuration
-
-`config/tool-mappings.yaml` defines:
-- **tools**: Semantic name → concrete tool name per target (e.g., `shell_exec` → `Bash` for Claude Code)
-- **capabilities**: Which tools support which features (e.g., `subagents: [claude_code, qwen, openclaw]`)
+| Claude Code | `~/.claude/plugins/skills/` | Direct symlink from source/ |
+| OpenCode | `~/opt-ai-agents/opencode/skills/` | Symlink from dist/ (or source/ fallback) |
+| OpenClaw | `/opt/openclaw/config/workspace/skills/` | Copy into container |
+| Gemini CLI | `~/.config/gemini-cli/skills/` | Symlink from dist/ |
+| Qwen Code | `~/.config/qwen-code/skills/` | Symlink from dist/ |
 
 ## Development Workflow
 
-**Creating a skill**: Write `source/my-skill.md` with frontmatter → `bash scripts/symlink-all.sh` → skill immediately available in all tools.
+**Creating a skill**:
+1. `mkdir source/my-skill && touch source/my-skill/SKILL.md`
+2. Add YAML frontmatter (name, description, allowed-tools)
+3. Write markdown body with instructions
+4. `bash scripts/symlink-all.sh` → skill available in all tools
 
-**Universal format gotchas**:
-- `{{tool:name}}` must match exactly in tool-mappings.yaml — typos → empty string
-- `{{#if supports:cap}}...{{/if}}` must be balanced
-- Per-target `targets:` overrides merge with (don't replace) base frontmatter
-
-## Cross-Repo Relationships
-
-- **shared-commands**: Same transpiler pattern, shares `tool-mappings.yaml` (symlinked)
-- **OpenClaw-Vault**: Imports skill catalog, links from chain notes
-- **ai-container-configs**: Container setup installs transpiler deps
+**Universal format** (for cross-tool skills):
+- `{{tool:shell_exec}}` → resolved per target via `tool-mappings.yaml`
+- `{{#if supports:subagents}}...{{/if}}` → conditional sections
+- Per-target `targets:` overrides merge with base frontmatter
 
 ## Things to Avoid
 
-- Don't edit files in `dist/` — they're overwritten by the transpiler
+- Don't edit files in `dist/` — overwritten by transpiler
+- Don't create flat `.md` skills in `source/` — use directory format only
 - Don't forget `npm install` in `transpiler/` before first transpile
-- Don't symlink into OpenClaw — container isolation requires copy (handled by script)
+- Don't symlink into OpenClaw — container isolation requires copy
 - Don't add a new semantic tool without updating `tool-mappings.yaml`
+- Don't put secrets or API keys in skill files
