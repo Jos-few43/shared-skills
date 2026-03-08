@@ -9,26 +9,6 @@ export function segmentsToString(segments: Segment[]): string {
   }).join("");
 }
 
-// Skills 2.0 fields that Claude Code understands natively
-const SKILLS_2_FIELDS = [
-  "argument-hint",
-  "disable-model-invocation",
-  "user-invocable",
-  "allowed-tools",
-  "model",
-  "context",
-  "agent",
-  "hooks",
-] as const;
-
-// Transpiler-only fields that should never appear in rendered output
-const TRANSPILER_ONLY_FIELDS = [
-  "requires",
-  "optional",
-  "targets",
-  "targets_only",
-] as const;
-
 export function renderFrontmatter(fm: SkillFrontmatter, includeSkills2Fields = false): string {
   const lines: string[] = ["---"];
   lines.push(`name: ${fm.name}`);
